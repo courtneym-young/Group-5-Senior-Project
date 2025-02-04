@@ -18,5 +18,5 @@ Our app is designed to bridge the gap between minority-owned businesses and the 
 **Backend Development:** Python, Node, TypeScript
 
 ## Repository Structure: 
-
+AWS Amplify
 
