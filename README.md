@@ -17,6 +17,17 @@ Our app is designed to bridge the gap between minority-owned businesses and the 
 **Frontend Development:** HTML, CSS, TypeScript  
 **Backend Development:** Python, Node, TypeScript
 
-## Repository Structure: 
-AWS Amplify
+
+## Running CrossRoads
+
+Install dependencies
+```shell
+cd crossroads && npm install
+```
+
+Running the application
+
+```shell
+cd crossroads && npm run dev
+```
 
