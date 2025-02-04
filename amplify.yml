@@ -1,0 +1,17 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - 'cd crossroads'
+        - 'npm install'
+    build:
+      commands:
+        - 'npm run build'
+  artifacts:
+    baseDirectory: 'crossroads/dist'
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - 'crossroads/node_modules/**/*'
