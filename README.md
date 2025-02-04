@@ -1,50 +1,22 @@
-# React + TypeScript + Vite
+# <span style="color:green">Cross</span>roads
+Sponsor: AWS Minority Business 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Problem Description:
+Many minority-owned businesses face challenges in gaining visibility and attracting customers due to limited marketing resources and lack of exposure. Members of the community often want to support these businesses but struggle to find reliable directories or platforms to identify them. This disconnect is compounded by the fact that many minority business owners lack the knowledge or tools to effectively market their companies, resulting in reduced awareness and missed opportunities for growth. A recent study highlights the importance of addressing this issue, revealing that "7 out of 10 small business owners agree that without access to technology platforms, their businesses would struggle to survive" (U.S. Chamber of Commerce Technology Engagement Center and Teneo Research). Bridging this gap through innovative technological solutions could significantly boost the success of minority-owned businesses while enabling community members to easily discover and support local enterprises
 
-Currently, two official plugins are available:
+## Product Description:
+Our app is designed to bridge the gap between minority-owned businesses and the communities that want to support them by providing an intuitive platform that connects customers with local businesses. Users can easily search for businesses based on proximity, keywords, product images, or voice search, ensuring that they can quickly find minority businesses that meet their needs. The app offers personalized recommendations based on search history and behavior, making it easier for users to discover new businesses. Minority business owners benefit from increased visibility through customer ratings, reviews, and social media sharing, which help them build awareness and credibility. By allowing customers to post reviews and view ratings over time, the app not only enhances the shopping experience but also empowers businesses to grow through community support and feedback. This solution addresses both the need for accessible business directories and the marketing challenges that minority-owned businesses face.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Expanding the ESLint configuration
+## Tech Stack: 
+**Framework:** React + Vite  
+**UI/UX Components:** Figma  
+**Version Control:** GitHub  
+**Software Editing:** Visual Studio Code  
+**Cloud Infrastructure:** AWS  
+**Frontend Development:** HTML, CSS, TypeScript  
+**Backend Development:** Python, Node, TypeScript
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Repository Structure: 
 
-- Configure the top-level `parserOptions` property like this:
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```

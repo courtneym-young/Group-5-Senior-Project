@@ -23,8 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
-# Ignore macOS system files
-.DS_Store
-Library/
-Pictures/
-*.photoslibrary
+
+# amplify
+node_modules
+.amplify
+amplify_outputs*
+amplifyconfiguration*
