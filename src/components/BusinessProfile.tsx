@@ -1,9 +1,6 @@
-import { useState } from 'react';
-import MinorityOwnedBadge from './MinorityOwnedBadge';
-import MinorityOwnedTag from './MinorityOwnedTag';
+import React, { useState } from 'react';
 
 interface BusinessProfileProps {
-  // Pass in the business data from the parent component
   initialBusiness: {
     name: string;
     contactInfo: string;
@@ -14,99 +11,135 @@ interface BusinessProfileProps {
 }
 
 const BusinessProfile: React.FC<BusinessProfileProps> = ({ initialBusiness }) => {
-  // State for editable business information
+  // Initialize state with initial values from the `initialBusiness` prop
   const [name, setName] = useState(initialBusiness.name);
   const [contactInfo, setContactInfo] = useState(initialBusiness.contactInfo);
   const [address, setAddress] = useState(initialBusiness.address);
   const [hours, setHours] = useState(initialBusiness.hours);
   const [isMinorityOwned, setIsMinorityOwned] = useState(initialBusiness.minorityOwned);
+  
+  // State to control editing mode, saving state, and error handling
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Handle the minority-owned toggle
-  const handleMinorityOwnedToggle = () => {
-    setIsMinorityOwned(prev => !prev);
+  // Handle saving the profile (for example, simulating a save with setTimeout)
+  const handleSave = () => {
+    setIsSaving(true);  // Indicate that we're saving
+    setError(null);  // Reset error message
+
+    // Simulate a save operation (e.g., API call)
+    setTimeout(() => {
+      setIsSaving(false);  // Stop saving
+      setIsEditing(false); // Exit edit mode
+
+      // Simulate an error or success
+      if (Math.random() < 0.5) {
+        setError('Failed to save the business profile.');
+      } else {
+        // No error, you could also update the `initialBusiness` here if you had an API call
+        setError(null);  // Clear any previous errors
+      }
+    }, 1000);  // Simulate a 1-second delay for the "saving" process
   };
 
-  // Handle saving updated business information with an API call
-  const handleSaveChanges = async () => {
-    try {
-      const response = await fetch('/api/update-business', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          contactInfo,
-          address,
-          hours,
-          isMinorityOwned,
-        }),
-      });
-      const data = await response.json();
-      console.log('Business details saved:', data);
-    } catch (error) {
-      console.error('Error saving business details:', error);
-    }
+  // Handle form submission (optional)
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSave();  // Trigger the save function when the form is submitted
   };
 
   return (
-    <div>
-      <h2>Business Profile</h2>
+    <div className="business-profile">
+      <h1>Business Profile</h1>
 
-      {/* Display Minority-Owned Badge if toggled */}
-      {isMinorityOwned && <MinorityOwnedBadge />}
+      {/* Display error if there was an issue with saving */}
+      {error && <div className="error">{error}</div>}
 
-      {/* Editable Business Information */}
-      <div>
-        <label>
-          Business Name:
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </label>
-      </div>
+      {/* Form to edit business information */}
+      <form onSubmit={handleFormSubmit}>
+        {/* Business Name */}
+        <div>
+          <label htmlFor="name">Business Name</label>
+          {isEditing ? (
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}  // Update state when value changes
+            />
+          ) : (
+            <p>{name}</p>  // Display name in view mode
+          )}
+        </div>
 
-      <div>
-        <label>
-          Contact Info:
-          <input
-            type="text"
-            value={contactInfo}
-            onChange={(e) => setContactInfo(e.target.value)}
-          />
-        </label>
-      </div>
+        {/* Contact Info */}
+        <div>
+          <label htmlFor="contactInfo">Contact Info</label>
+          {isEditing ? (
+            <input
+              id="contactInfo"
+              type="text"
+              value={contactInfo}
+              onChange={(e) => setContactInfo(e.target.value)}  // Update state
+            />
+          ) : (
+            <p>{contactInfo}</p>  // Display contact info in view mode
+          )}
+        </div>
 
-      <div>
-        <label>
-          Address:
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
-        </label>
-      </div>
+        {/* Address */}
+        <div>
+          <label htmlFor="address">Address</label>
+          {isEditing ? (
+            <input
+              id="address"
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}  // Update state
+            />
+          ) : (
+            <p>{address}</p>  // Display address in view mode
+          )}
+        </div>
 
-      <div>
-        <label>
-          Hours:
-          <input
-            type="text"
-            value={hours}
-            onChange={(e) => setHours(e.target.value)}
-          />
-        </label>
-      </div>
+        {/* Hours of Operation */}
+        <div>
+          <label htmlFor="hours">Business Hours</label>
+          {isEditing ? (
+            <input
+              id="hours"
+              type="text"
+              value={hours}
+              onChange={(e) => setHours(e.target.value)}  // Update state
+            />
+          ) : (
+            <p>{hours}</p>  // Display hours in view mode
+          )}
+        </div>
 
-      {/* Minority-Owned Toggle */}
-      <MinorityOwnedTag
-        minorityOwned={isMinorityOwned}
-        onChange={handleMinorityOwnedToggle}
-      />
+        {/* Minority Owned Checkbox */}
+        <div>
+          <label htmlFor="minorityOwned">Minority Owned</label>
+          {isEditing ? (
+            <input
+              id="minorityOwned"
+              type="checkbox"
+              checked={isMinorityOwned}
+              onChange={() => setIsMinorityOwned(!isMinorityOwned)}  // Toggle checkbox
+            />
+          ) : (
+            <p>{isMinorityOwned ? 'Yes' : 'No'}</p>  // Display checkbox status in view mode
+          )}
+        </div>
 
-      {/* Save Button */}
-      <button onClick={handleSaveChanges}>Save Changes</button>
+        {/* Edit/Save Button */}
+        <div>
+          <button type="button" onClick={() => setIsEditing(!isEditing)}>
+            {isEditing ? (isSaving ? 'Saving...' : 'Save Changes') : 'Edit'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
