@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import BusinessProfile from './components/BusinessProfile';
 
-// Business data interface
 interface Business {
   name: string;
   contactInfo: string;
@@ -81,61 +79,4 @@ const BusinessSearch: React.FC<SearchProps> = ({ businesses }) => {
   );
 };
 
-const App = () => {
-  // Simulated initial business data for BusinessProfile
-  const initialBusinessData = {
-    name: 'Business 1',
-    contactInfo: 'contact@business1.com',
-    address: '123 Business St, Cityville',
-    hours: '9 AM - 5 PM',
-    minorityOwned: true,
-  };
-
-  // Fake business data for BusinessSearch
-  const fakeBusinesses: Business[] = [
-    {
-      name: 'Tech Innovators',
-      contactInfo: 'tech@innovators.com',
-      address: '123 Innovation Rd, Silicon Valley, CA',
-      hours: '9:00 AM - 5:00 PM',
-      minorityOwned: true,
-    },
-    {
-      name: 'Green Earth Products',
-      contactInfo: 'contact@greenearth.com',
-      address: '456 Green Ave, Denver, CO',
-      hours: '10:00 AM - 6:00 PM',
-      minorityOwned: false,
-    },
-    {
-      name: 'Creative Designs',
-      contactInfo: 'support@creativedesigns.com',
-      address: '789 Design St, New York, NY',
-      hours: '8:00 AM - 4:00 PM',
-      minorityOwned: true,
-    },
-    {
-      name: 'Healthy Eats',
-      contactInfo: 'info@healthyeats.com',
-      address: '101 Wellness Blvd, Austin, TX',
-      hours: '11:00 AM - 7:00 PM',
-      minorityOwned: false,
-    },
-  ];
-
-  return (
-    <div>
-      <h1>Business Directory</h1>
-
-      {/* BusinessProfile Component */}
-      <h2>Business Profile</h2>
-      <BusinessProfile initialBusiness={initialBusinessData} />
-
-      {/* BusinessSearch Component */}
-      <h2>Business Search</h2>
-      <BusinessSearch businesses={fakeBusinesses} />
-    </div>
-  );
-};
-
-export default App;
+export default BusinessSearch;
