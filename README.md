@@ -1,5 +1,6 @@
 # <span style="color:green">Cross</span>roads
 Sponsor: AWS Minority Business 
+https://main.d2wwtzrzq0wsfu.amplifyapp.com/
 
 ## Problem Description:
 Many minority-owned businesses face challenges in gaining visibility and attracting customers due to limited marketing resources and lack of exposure. Members of the community often want to support these businesses but struggle to find reliable directories or platforms to identify them. This disconnect is compounded by the fact that many minority business owners lack the knowledge or tools to effectively market their companies, resulting in reduced awareness and missed opportunities for growth. A recent study highlights the importance of addressing this issue, revealing that "7 out of 10 small business owners agree that without access to technology platforms, their businesses would struggle to survive" (U.S. Chamber of Commerce Technology Engagement Center and Teneo Research). Bridging this gap through innovative technological solutions could significantly boost the success of minority-owned businesses while enabling community members to easily discover and support local enterprises
