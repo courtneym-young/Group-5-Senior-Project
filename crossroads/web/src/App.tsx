@@ -1,39 +1,44 @@
-import { useEffect, useState } from "react";
-import type { Schema } from "../amplify/data/resource";
-import { generateClient } from "aws-amplify/data";
+import { useAuthenticator } from "@aws-amplify/ui-react";
+import { Routes, Route } from "react-router";
+import LandingPage from "./pages/LandingPage";
+import AdminPage from "./pages/AdminPage";
+import BusinessOwnerPage from "./pages/BusinessOwnerPage";
+import { ProtectedRoute } from "./auth/ProtectedRoute";
+import { GroupRoles } from "./types/group-types";
 
-const client = generateClient<Schema>();
 
 function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
-
-  useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
-  }, []);
-
-  function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
-  }
+  const { user } = useAuthenticator();
+  const { signOut } = useAuthenticator();
 
   return (
-    <main>
-      <h1>My todos</h1>
-      <button onClick={createTodo}>+ new</button>
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.content}</li>
-        ))}
-      </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-          Review next step of this tutorial.
-        </a>
-      </div>
-    </main>
+    <>
+    <Routes>
+      <Route index element={<LandingPage user={user} />} />
+      <Route
+        path="my-business"
+        element={
+          <ProtectedRoute
+            redirectPath="/"
+            user={user}
+            requiredGroup={GroupRoles.BUSINESS_OWNER}
+          >
+            <BusinessOwnerPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="admin"
+        element={
+          <ProtectedRoute user={user} requiredGroup={GroupRoles.ADMIN}>
+            <AdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<p>There's nothing here: 404!</p>} />
+    </Routes>
+    <button onClick={signOut}>Sign out</button>
+    </>
   );
 }
 
