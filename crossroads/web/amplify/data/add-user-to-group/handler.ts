@@ -9,9 +9,9 @@ type Handler = Schema["addUserToGroup"]["functionHandler"];
 const client = new CognitoIdentityProviderClient();
 
 export const handler: Handler = async (event) => {
-  const { userId, groupName } = event.arguments;
+  const { id, groupName } = event.arguments;
   const command = new AdminAddUserToGroupCommand({
-    Username: userId,
+    Username: id,
     GroupName: groupName,
     UserPoolId: env.AMPLIFY_AUTH_USERPOOL_ID,
   });
