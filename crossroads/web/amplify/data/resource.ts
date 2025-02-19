@@ -8,7 +8,7 @@ const schema = a
       .model({
         content: a.string(),
       })
-      .authorization((allow) => [allow.publicApiKey()]),
+      .authorization((allow) => [allow.owner()]),
     
     addUserToGroup: a
     .mutation()

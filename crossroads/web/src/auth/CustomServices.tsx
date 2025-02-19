@@ -7,12 +7,11 @@ const services = {
     const firstName = options?.userAttributes.given_name ?? ""
     const lastName = options?.userAttributes.family_name ?? ""
     const birthdate = options?.userAttributes.birthdate ?? ""
-    const customUsername = username.toLowerCase()
 
     console.log(username, password, options)
 
     return signUp({
-      username: customUsername,
+      username,
       password,
       options: {
         ...input.options,

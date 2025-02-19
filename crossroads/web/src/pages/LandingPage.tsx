@@ -4,6 +4,7 @@ interface Props {
   user: AuthUser;
 }
 const LandingPage: FunctionComponent<Props> = (props: Props) => {
+  console.log(props.user)
   return (
     <div>
       <h1>

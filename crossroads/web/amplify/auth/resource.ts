@@ -7,7 +7,7 @@ export const auth = defineAuth({
   loginWith: {
     email: {
       verificationEmailStyle: "CODE",
-      verificationEmailSubject: "Welcome to my CrossRoads",
+      verificationEmailSubject: "Welcome to CrossRoads!",
       verificationEmailBody: (createCode) =>
         `Use this code to confirm your account: ${createCode()}`,
       userInvitation: {
