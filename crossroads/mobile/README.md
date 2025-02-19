@@ -1,50 +1,56 @@
-# Welcome to your Expo app 👋
+# Crossroads Mobile Build
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The directory contains all the tools and code to build the CrossRoads mobile application on Android and IOS. The initial application was created using [Expo](https://expo.dev) and the command line tool [`create-expo-app`](https://docs.expo.dev/more/create-expo/).
+
+
+## Prerequisites
+You will need either an [Android Studio Emulator](https://docs.expo.dev/workflow/android-studio-emulator/) or an [IOS Simulator](https://docs.expo.dev/workflow/ios-simulator/). 
 
 ## Get started
+After installing we can run the app.
 
 1. Install dependencies
 
    ```bash
-   npm install
+   yarn install
    ```
+   Using Yarn causes less issues when building. Click [here](https://classic.yarnpkg.com/lang/en/docs/install/) for installation instructions.
 
 2. Start the app
 
    ```bash
-    npx expo start
+    npm run android
+   ```
+    or 
+   ```bash
+    npm run ios
    ```
 
-In the output, you'll find options to open the app in a
+## Common Issues & Fixes  
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### 1. `:react-native-reanimated:configureCMakeDebug[arm64-v8a] FAILED` (Android)  
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+**Issue:** This error occurs in an empty React Native project when building for Android.  
 
-## Get a fresh project
+**Possible Causes & Fixes:**  
+- **Long or Complex File Path:**  
+  - If your project folder has a long name or is deeply nested, it may cause issues with CMake.  
+  - **Fix:** Move your project to a shorter, simpler path (e.g., `C:\Projects\MyApp` instead of `C:\Users\YourName\Documents\ReactNative\SomeLongFolderName\MyApp`).  
+  - [Reference Issue](https://github.com/software-mansion/react-native-reanimated/issues/4712#issuecomment-1852734366)  
 
-When you're ready, run:
+### 2. [Reanimated] Babel plugin exception: TypeError: (0 , types_12.cloneNode) is not a function"
 
-```bash
-npm run reset-project
-```
+**Issue:** There is an issue with the package and version manager and the package is not recognized. 
+**Possible Causes & Fixes:**   
+  - **Fix:** Use yarn install instead.  
+  - [Reference Issue](https://github.com/software-mansion/react-native-reanimated/issues/6006#issuecomment-2599326800)  
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-## Learn more
+## Additional Resouces
 
-To learn more about developing your project with Expo, look at the following resources:
+### Using Expo 
+[Expo Router – Creating Pages](https://docs.expo.dev/router/create-pages/)  
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### UI Customization  
+- [Amplify UI for React Native – Getting Started](https://ui.docs.amplify.aws/react-native/getting-started/introduction)  
+- [Amplify UI Authenticator Customization](https://ui.docs.amplify.aws/react-native/connected-components/authenticator/customization)  

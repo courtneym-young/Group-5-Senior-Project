@@ -85,6 +85,7 @@ const schema = a
         hours: a.string(),
         images: a.string().array(),
         isMinorityOwned: a.boolean(),
+        status: a.enum(['PENDING_REVIEW', 'FLAGGED', 'VERIFIED']),
         averageRating: a.float(),
         numberOfRatings: a.integer(),
         createdAt: a.datetime(),

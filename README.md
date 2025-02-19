@@ -10,11 +10,11 @@ Our app is designed to bridge the gap between minority-owned businesses and the 
 
 
 ## Tech Stack: 
-**Framework:** React + Vite  
+**Framework:** React, React Native, Vite  
 **UI/UX Components:** Figma  
 **Version Control:** GitHub  
 **Software Editing:** Visual Studio Code  
-**Cloud Infrastructure:** AWS  
+**Cloud Infrastructure:** AWS Amplify
 **Frontend Development:** HTML, CSS, TypeScript  
 **Backend Development:** Python, Node, TypeScript
 
