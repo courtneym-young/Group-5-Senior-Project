@@ -15,7 +15,7 @@ Amplify.configure(outputs);
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <Authenticator services={services} formFields={formFields} components={CustomAuth}>
+      <Authenticator services={services} formFields={formFields} components={CustomAuth} hideSignUp>
         <App />
       </Authenticator>
     </BrowserRouter>

@@ -1,6 +1,6 @@
-import { useTheme } from '@aws-amplify/ui-react';
-import { useAuthenticator } from '@aws-amplify/ui-react';
-import { View, Text, Image, Heading, Button } from '@aws-amplify/ui-react';
+import { useTheme } from "@aws-amplify/ui-react";
+import { useAuthenticator } from "@aws-amplify/ui-react";
+import { View, Text, Image, Heading, Button } from "@aws-amplify/ui-react";
 
 export const CustomAuth = {
   Header() {
@@ -37,7 +37,7 @@ export const CustomAuth = {
           padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
           level={3}
         >
-          Sign in to your CrossRoad's Account
+          Crossroads Admin Panel
         </Heading>
       );
     },
@@ -58,113 +58,13 @@ export const CustomAuth = {
       );
     },
   },
-
-  SignUp: {
-    Header() {
-      const { tokens } = useTheme();
-
-      return (
-        <Heading
-          padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`} // Correct template literal
-          level={3}
-        >
-          Create a new account
-        </Heading>
-      );
-    },
-    Footer() {
-      const { toSignIn } = useAuthenticator();
-
-      return (
-        <View textAlign="center">
-          <Button
-            fontWeight="normal"
-            onClick={toSignIn}
-            size="small"
-            variation="link"
-          >
-            Back to Sign In
-          </Button>
-        </View>
-      );
-    },
-  },
-
-  ConfirmSignUp: {
-    Header() {
-      const { tokens } = useTheme();
-      return (
-        <Heading
-          padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`} // Correct template literal
-          level={3}
-        >
-          Enter Information:
-        </Heading>
-      );
-    },
-    Footer() {
-      return <Text>Footer Information</Text>;
-    },
-  },
-
-
-
-
-
-
-
-  
-}
+};
 
 export const formFields = {
   signIn: {
     username: {
       placeholder: "Enter your email",
     },
-  },
-  signUp: {
-    email: {
-      order: 1,
-      label: "Enter your email",
-      placeholder: "Enter your email",
-      isRequired: true
-    },
-    given_name: {
-      order: 2,
-      label: "Enter your first name",
-      placeholder: "Enter your first name",
-      isRequired: true
-    },
-    family_name: {
-      order: 3,
-      label: "Enter your last name",
-      placeholder: "Enter your last name",
-      isRequired: true
-    },
-    birthdate: {
-      order: 4,
-      label: "Enter your birthdate",
-      placeholder: "Enter your birthdate",
-      isRequired: true
-    },
-    preferred_username: {
-      order: 5,
-      label: "Enter your username",
-      placeholder: "Enter your username",
-      isRequired: true
-    },
-    password: {
-      order: 6,
-      label: "Enter your password",
-      placeholder: "Enter your password",
-      isRequired: true
-    },
-    confirm_password: {
-      order: 7,
-      label: "Confirm your password",
-      placeholder: "Confirm your password",
-      isRequired: true
-    }
   },
   forceNewPassword: {
     password: {
