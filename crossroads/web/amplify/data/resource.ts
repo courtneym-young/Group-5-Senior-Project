@@ -4,12 +4,6 @@ import { addUserToGroup } from "./add-user-to-group/resource";
 
 const schema = a
   .schema({
-    Todo: a
-      .model({
-        content: a.string(),
-      })
-      .authorization((allow) => [allow.owner()]),
-    
     addUserToGroup: a
     .mutation()
     .arguments({
