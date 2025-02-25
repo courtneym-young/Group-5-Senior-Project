@@ -36,22 +36,14 @@ function App() {
     }
   }, [isAdmin, user, signOut, hasCheckedAdminStatus]);
 
-  if (
-    isAdmin === null ||
-    (user && isAdmin === false && hasCheckedAdminStatus)
-  ) {
+  if (isAdmin === null || (user && isAdmin === false && hasCheckedAdminStatus)) {
     return null;
   }
 
   if (user && isAdmin === true) {
     return (
       <>
-        <p>Logged in as: {user.username}</p>
-        <p>
-          User Groups: {userGroups.length > 0 ? userGroups.join(", ") : "None"}
-        </p>
-        <AdminPage />
-        <button onClick={signOut}>Sign out</button>
+        <AdminPage username={user.username} signOut={signOut} />
       </>
     );
   }
