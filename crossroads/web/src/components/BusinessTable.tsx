@@ -183,7 +183,7 @@ const BusinessTable: React.FC = () => {
                   {businesses.businesses.map((business, index) => (
                     <tr key={business.businessId} className={index % 1 === 0 ? "bg-gray-50 dark:bg-gray-700" : ""}>
                       <td className="p-4 text-sm font-normal text-gray-900 whitespace-nowrap dark:text-white">
-                        <span className="font-semibold">{business.name}</span>
+                        <a href={business.website ?? '#'} target="_blank"> <span className="font-semibold">{business.name}</span></a>
                       </td>
                       <td className="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
                         {business.updatedAt}
