@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const Header = () => {
   const [currentTime, setCurrentTime] = useState(
@@ -6,6 +6,7 @@ const Header = () => {
   );
 
   useEffect(() => {
+    console.log(currentTime)
     const timer = setInterval(() => {
       setCurrentTime(new Date().toLocaleTimeString());
     }, 1000);

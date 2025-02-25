@@ -13,6 +13,7 @@ function App() {
 
   const getUserGroups = useCallback(async () => {
     if (user) {
+      console.log(userGroups)
       const groups = await fetchUserGroups();
       setUserGroups(groups);
       const adminStatus = isUserInGroup(groups, GroupRoles.ADMIN);

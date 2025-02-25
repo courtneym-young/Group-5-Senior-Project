@@ -9,7 +9,7 @@ interface AdminPageProps {
   signOut: () => void;
 }
 
-const AdminPage: FunctionComponent<AdminPageProps> = ({ username, signOut }) => {
+const AdminPage: FunctionComponent<AdminPageProps> = () => {
   return (
     <div>
       {/* <Header username={username} signOut={signOut} /> */}
