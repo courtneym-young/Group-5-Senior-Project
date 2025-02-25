@@ -106,25 +106,6 @@ export const useFetchBusinessList = () => {
   return { businesses, loading, error };
 };
 
-// export const useFetchBusinessList = () => {
-//   const [businesses, setBusinesses] = useState<
-//     Array<Schema["Business"]["type"]>
-//   >([]);
-
-//   useEffect(() => {
-//     const fetchBusinesses = async () => {
-//       try {
-//         const result = await client.models.Business.list();
-//         setBusinesses(result.data);
-//       } catch (error) {
-//         console.error("Error fetching businesses:", error);
-//       }
-//     };
-//     fetchBusinesses();
-//   }, []);
-
-//   return businesses;
-// };
 
 export const useTotalBusinessCount = () => {
   const [total, setTotal] = useState(0);
@@ -182,4 +163,24 @@ export const useVerifiedBusinessCount = () => {
     }, []);
 
     return verifiedCount;
+};
+
+export const usePendingReviewBusinessCount = () => {
+  const [verifiedCount, setVerifiedCount] = useState(0);
+
+  useEffect(() => {
+      const fetchVerifiedCount = async () => {
+          try {
+              const result = await client.models.Business.list({
+                  filter: { status: { eq: "PENDING_REVIEW" } }
+              });
+              setVerifiedCount(result.data.length);
+          } catch (error) {
+              console.error("Error fetching verified business count:", error);
+          }
+      };
+      fetchVerifiedCount();
+  }, []);
+
+  return verifiedCount;
 };

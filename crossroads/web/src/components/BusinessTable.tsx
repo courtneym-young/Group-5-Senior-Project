@@ -1,10 +1,10 @@
 import React from "react";
 import { useFetchBusinessList } from "../helpers/businessHelpers";
 import { BUSINESS_STATUS_COLOR_MAPPING } from "../config/StyleConfig";
+import { formatDate } from "../helpers/timeHelpers";
 
 const BusinessTable: React.FC = () => {
   const businesses = useFetchBusinessList();
-  console.log(businesses);
 
   return (
     <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
@@ -186,7 +186,7 @@ const BusinessTable: React.FC = () => {
                         <a href={business.website ?? '#'} target="_blank"> <span className="font-semibold">{business.name}</span></a>
                       </td>
                       <td className="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                        {business.updatedAt}
+                        {formatDate(business.updatedAt ?? "")}
                       </td>
                       <td className="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white">
                       {business.businessId}
