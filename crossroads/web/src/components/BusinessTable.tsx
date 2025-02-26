@@ -1,10 +1,117 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useFetchBusinessList } from "../helpers/businessHelpers";
 import { BUSINESS_STATUS_COLOR_MAPPING } from "../config/StyleConfig";
 import { formatDate } from "../helpers/timeHelpers";
 
+// Define TypeScript types
+export type BusinessStatusType = 'PENDING_REVIEW' | 'FLAGGED' | 'VERIFIED';
+
+export enum BusinessStatusTypes {
+  PENDING = 'PENDING_REVIEW',
+  FLAGGED = 'FLAGGED',
+  VERIFIED = 'VERIFIED',
+}
+
 const BusinessTable: React.FC = () => {
-  const businesses = useFetchBusinessList();
+  const { businesses: allBusinesses } = useFetchBusinessList();
+  
+  // State for filters
+  const [statusFilters, setStatusFilters] = useState<BusinessStatusType[]>([]);
+  const [filteredBusinesses, setFilteredBusinesses] = useState(allBusinesses);
+  
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  // State for time filter
+  const [timeFilter, setTimeFilter] = useState("Last 7 days");
+  const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+
+  // Effect to filter businesses when filters change
+  useEffect(() => {
+    let result = [...allBusinesses];
+    
+    // Apply status filters if any are selected
+    if (statusFilters.length > 0) {
+      result = result.filter(business => 
+        statusFilters.includes(business.status as BusinessStatusType)
+      );
+    }
+    
+    // Apply time filter logic (simplified for example)
+    if (timeFilter !== "All time") {
+      const now = new Date();
+      let cutoffDate = new Date();
+      
+      switch(timeFilter) {
+        case "Today":
+          cutoffDate.setHours(0, 0, 0, 0);
+          break;
+        case "Yesterday":
+          cutoffDate.setDate(now.getDate() - 1);
+          cutoffDate.setHours(0, 0, 0, 0);
+          break;
+        case "Last 7 days":
+          cutoffDate.setDate(now.getDate() - 7);
+          break;
+        case "Last 30 days":
+          cutoffDate.setDate(now.getDate() - 30);
+          break;
+        case "Last 90 days":
+          cutoffDate.setDate(now.getDate() - 90);
+          break;
+        default:
+          // No time filtering
+          break;
+      }
+      
+      result = result.filter(business => {
+        const updateDate = new Date(business.updatedAt || "");
+        return updateDate >= cutoffDate;
+      });
+    }
+    
+    setFilteredBusinesses(result);
+    // Reset to first page when filters change
+    setCurrentPage(1);
+  }, [allBusinesses, statusFilters, timeFilter]);
+
+  // Calculate pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentBusinesses = filteredBusinesses.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage);
+
+  // Toggle status filter
+  const toggleStatusFilter = (status: BusinessStatusType) => {
+    if (statusFilters.includes(status)) {
+      setStatusFilters(statusFilters.filter(s => s !== status));
+    } else {
+      setStatusFilters([...statusFilters, status]);
+    }
+  };
+
+  // Get count of businesses by status
+  const getStatusCount = (status: BusinessStatusType) => {
+    return allBusinesses.filter(business => business.status === status).length;
+  };
+
+  // Handle pagination
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+  const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+
+  // Toggle dropdowns
+  const toggleTimeDropdown = () => {
+    setIsTimeDropdownOpen(!isTimeDropdownOpen);
+    if (isFilterDropdownOpen) setIsFilterDropdownOpen(false);
+  };
+  
+  const toggleFilterDropdown = () => {
+    setIsFilterDropdownOpen(!isFilterDropdownOpen);
+    if (isTimeDropdownOpen) setIsTimeDropdownOpen(false);
+  };
 
   return (
     <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
@@ -19,10 +126,9 @@ const BusinessTable: React.FC = () => {
           </span>
         </div>
         <div className="items-center sm:flex">
-          <div className="flex items-center">
+          <div className="flex items-center relative">
             <button
-              id="dropdownDefault"
-              data-dropdown-toggle="dropdown"
+              onClick={toggleFilterDropdown}
               className="mb-4 sm:mb-0 mr-4 inline-flex items-center text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-4 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
               type="button"
             >
@@ -36,100 +142,70 @@ const BusinessTable: React.FC = () => {
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M19 9l-7 7-7-7"
                 ></path>
               </svg>
             </button>
-            {/* <!-- Dropdown menu --> */}
-            <div
-              id="dropdown"
-              className="z-10 w-56 p-3 bg-white rounded-lg shadow dark:bg-gray-700 hidden"
-              style={{
-                position: "absolute",
-                top: "0px",
-                left: "0px",
-                transform: "translate(1134px, 3260px)",
-              }}
-              aria-hidden="true"
-              data-popper-placement="bottom"
-            >
-              <h6 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
-                Category
-              </h6>
-              <ul
-                className="space-y-2 text-sm"
-                aria-labelledby="dropdownDefault"
+            {/* <!-- Status filter dropdown menu --> */}
+            {isFilterDropdownOpen && (
+              <div
+                className="z-10 w-56 p-3 bg-white rounded-lg shadow dark:bg-gray-700 absolute top-full left-0 mt-2"
               >
-                <li className="flex items-center">
-                  <input
-                    id="apple"
-                    type="checkbox"
-                    value=""
-                    className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
-                  />
-
-                  <label
-                    htmlFor="apple"
-                    className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100"
-                  >
-                    Completed (56)
-                  </label>
-                </li>
-
-                <li className="flex items-center">
-                  <input
-                    id="fitbit"
-                    type="checkbox"
-                    value=""
-                    checked={false}
-                    className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
-                  />
-
-                  <label
-                    htmlFor="fitbit"
-                    className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100"
-                  >
-                    Cancelled (56)
-                  </label>
-                </li>
-
-                <li className="flex items-center">
-                  <input
-                    id="dell"
-                    type="checkbox"
-                    value=""
-                    className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
-                  />
-
-                  <label
-                    htmlFor="dell"
-                    className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100"
-                  >
-                    In progress (56)
-                  </label>
-                </li>
-
-                <li className="flex items-center">
-                  <input
-                    id="asus"
-                    type="checkbox"
-                    value=""
-                    checked={false}
-                    className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
-                  />
-
-                  <label
-                    htmlFor="asus"
-                    className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100"
-                  >
-                    In review (97)
-                  </label>
-                </li>
-              </ul>
-            </div>
+                <h6 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
+                  Status
+                </h6>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center">
+                    <input
+                      id="status-pending"
+                      type="checkbox"
+                      checked={statusFilters.includes(BusinessStatusTypes.PENDING)}
+                      onChange={() => toggleStatusFilter(BusinessStatusTypes.PENDING)}
+                      className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+                    />
+                    <label
+                      htmlFor="status-pending"
+                      className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100"
+                    >
+                      Pending Review ({getStatusCount(BusinessStatusTypes.PENDING)})
+                    </label>
+                  </li>
+                  <li className="flex items-center">
+                    <input
+                      id="status-flagged"
+                      type="checkbox"
+                      checked={statusFilters.includes(BusinessStatusTypes.FLAGGED)}
+                      onChange={() => toggleStatusFilter(BusinessStatusTypes.FLAGGED)}
+                      className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+                    />
+                    <label
+                      htmlFor="status-flagged"
+                      className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100"
+                    >
+                      Flagged ({getStatusCount(BusinessStatusTypes.FLAGGED)})
+                    </label>
+                  </li>
+                  <li className="flex items-center">
+                    <input
+                      id="status-verified"
+                      type="checkbox"
+                      checked={statusFilters.includes(BusinessStatusTypes.VERIFIED)}
+                      onChange={() => toggleStatusFilter(BusinessStatusTypes.VERIFIED)}
+                      className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+                    />
+                    <label
+                      htmlFor="status-verified"
+                      className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100"
+                    >
+                      Verified ({getStatusCount(BusinessStatusTypes.VERIFIED)})
+                    </label>
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -180,22 +256,23 @@ const BusinessTable: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800">
-                  {businesses.businesses.map((business, index) => (
-                    <tr key={business.businessId} className={index % 1 === 0 ? "bg-gray-50 dark:bg-gray-700" : ""}>
+                  {currentBusinesses.map((business, index) => (
+                    <tr key={business.businessId} className={index % 2 === 0 ? "bg-gray-50 dark:bg-gray-700" : ""}>
                       <td className="p-4 text-sm font-normal text-gray-900 whitespace-nowrap dark:text-white">
-                        <a href={business.website ?? '#'} target="_blank"> <span className="font-semibold">{business.name}</span></a>
+                        <a href={business.website ?? '#'} target="_blank" rel="noopener noreferrer"> 
+                          <span className="font-semibold">{business.name}</span>
+                        </a>
                       </td>
                       <td className="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
                         {formatDate(business.updatedAt ?? "")}
                       </td>
                       <td className="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white">
-                      {business.businessId}
+                        {business.businessId}
                       </td>
                       <td className="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
                         <a href={`user/${business.user?.id}`}>
                           {business.user?.firstName || "N/A"} {business.user?.lastName || "N/A"} 
                         </a>
-                      
                       </td>
                       <td className="inline-flex items-center p-4 space-x-2 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
                         <span>{business.category}</span>
@@ -219,15 +296,77 @@ const BusinessTable: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* <!-- Pagination --> */}
+      <div className="flex items-center justify-between pt-4">
+        <div className="flex space-x-2">
+          <button
+            onClick={goToPrevPage}
+            disabled={currentPage === 1}
+            className={`px-3 py-1 rounded-md ${
+              currentPage === 1
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+            }`}
+          >
+            Previous
+          </button>
+          <div className="flex space-x-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              // Show 5 page numbers centered around current page
+              let pageNum = currentPage;
+              if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              
+              if (pageNum > 0 && pageNum <= totalPages) {
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => paginate(pageNum)}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === pageNum
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              }
+              return null;
+            })}
+          </div>
+          <button
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+            className={`px-3 py-1 rounded-md ${
+              currentPage === totalPages
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredBusinesses.length)} of {filteredBusinesses.length}
+        </div>
+      </div>
+      
       {/* <!-- Card Footer --> */}
       <div className="flex items-center justify-between pt-3 sm:pt-6">
-        <div>
+        <div className="relative">
           <button
             className="inline-flex items-center p-2 text-sm font-medium text-center text-gray-500 rounded-lg hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             type="button"
-            data-dropdown-toggle="transactions-dropdown"
+            onClick={toggleTimeDropdown}
           >
-            Last 7 days{" "}
+            {timeFilter}{" "}
             <svg
               className="w-4 h-4 ml-2"
               fill="none"
@@ -236,84 +375,112 @@ const BusinessTable: React.FC = () => {
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
                 d="M19 9l-7 7-7-7"
               ></path>
             </svg>
           </button>
-          {/* <!-- Dropdown menu --> */}
-          <div
-            className="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600"
-            id="transactions-dropdown"
-            data-popper-placement="bottom"
+          {/* <!-- Time filter dropdown menu --> */}
+          {isTimeDropdownOpen && (
+            <div
+              className="z-50 absolute left-0 bottom-full mb-2 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600"
+            >
+              <div className="px-4 py-3" role="none">
+                <p
+                  className="text-sm font-medium text-gray-900 truncate dark:text-white"
+                  role="none"
+                >
+                  Select time range
+                </p>
+              </div>
+              <ul className="py-1" role="none">
+                <li>
+                  <button
+                    onClick={() => {
+                      setTimeFilter("Today");
+                      setIsTimeDropdownOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    Today
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setTimeFilter("Yesterday");
+                      setIsTimeDropdownOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    Yesterday
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setTimeFilter("Last 7 days");
+                      setIsTimeDropdownOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    Last 7 days
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setTimeFilter("Last 30 days");
+                      setIsTimeDropdownOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    Last 30 days
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setTimeFilter("Last 90 days");
+                      setIsTimeDropdownOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    Last 90 days
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setTimeFilter("All time");
+                      setIsTimeDropdownOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
+                  >
+                    All time
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-500 dark:text-gray-400">Items per page:</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1); // Reset to first page when changing items per page
+            }}
+            className="text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           >
-            <div className="px-4 py-3" role="none">
-              <p
-                className="text-sm font-medium text-gray-900 truncate dark:text-white"
-                role="none"
-              >
-                Sep 16, 2021 - Sep 22, 2021
-              </p>
-            </div>
-            <ul className="py-1" role="none">
-              <li>
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
-                  role="menuitem"
-                >
-                  Yesterday
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
-                  role="menuitem"
-                >
-                  Today
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
-                  role="menuitem"
-                >
-                  Last 7 days
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
-                  role="menuitem"
-                >
-                  Last 30 days
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
-                  role="menuitem"
-                >
-                  Last 90 days
-                </a>
-              </li>
-            </ul>
-            <div className="py-1" role="none">
-              <a
-                href="#"
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
-                role="menuitem"
-              >
-                Custom...
-              </a>
-            </div>
-          </div>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
         </div>
       </div>
     </div>
