@@ -14,6 +14,13 @@ interface Product {
     comment: string;
   }
 
+  interface Deal {
+    title: string;
+    description: string;
+    oldPrice?: number;
+    newPrice?: number;
+  }
+
   interface Business {
     name: string;
     contactInfo: string;
@@ -24,6 +31,7 @@ interface Product {
     products: Product[];
     reviews: Review[];
     imageUrl?: string;
+    deals?: Deal[];
   }
   
 

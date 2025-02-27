@@ -4,6 +4,7 @@ import BusinessProfile from './components/BusinessProfile';
 import ProductPage from './components/Product';
 import ReviewsPage from './components/Reviews';
 import Featured from './components/Featured';
+import Promotions from './components/Promotions';
 
 // Business data interface
 interface Business {
@@ -15,7 +16,8 @@ interface Business {
   minorityOwned: boolean;
   products: Product[];
   reviews: Review[];
-  imageUrl?: string;
+  imageUrl: string;
+  deals?: Deal[];
 }
 
 interface Product {
@@ -23,6 +25,13 @@ interface Product {
   name: string;
   description: string;
   price: number;
+}
+
+interface Deal {
+  title: string;
+  description: string;
+  oldPrice?: number;
+  newPrice?: number;
 }
 
 interface Review {
@@ -174,6 +183,9 @@ const App: React.FC = () => {
         { user: 'howardstudent1', rating: 4, comment: 'I like this business.' },
       ],
       imageUrl: '/images/tech.png',
+      deals: [
+        { title: '50% off all headphones', description: 'Limited time offer', oldPrice: 200, newPrice: 100 },
+      ],
     },
     {
       name: 'Plant People',
@@ -191,6 +203,9 @@ const App: React.FC = () => {
         { user: 'howardstudent1', rating: 2, comment: 'My plant died.' },
       ],
       imageUrl: '/images/plant.png',
+      deals: [
+        { title: '50% off all plants', description: 'Limited time offer', oldPrice: 100, newPrice: 50 },
+      ],
     },
   ];
 
@@ -198,6 +213,7 @@ const App: React.FC = () => {
     <Router>
       <nav className="links-container">
       <Link to="/featured">Featured</Link>
+      <Link to="/deals">Deals</Link>
       <Link to="/">Search</Link>
       <Link to="/insights">Insights</Link>
       <Link to="/profile">Profile</Link>
@@ -206,6 +222,7 @@ const App: React.FC = () => {
 
       <Routes>
         <Route path="/featured" element={<Featured businesses={fakeBusinesses}/>}/>
+        <Route path="/deals" element={<Promotions businesses={fakeBusinesses}/>}/>
         <Route path="/" element={<BusinessSearch businesses={fakeBusinesses} />} />
         <Route path="/profile/:name" element={<BusinessProfilePage businesses={fakeBusinesses} />} />
         <Route path="/profile/:name/products" element={<BusinessProductsPage businesses={fakeBusinesses} />} />
