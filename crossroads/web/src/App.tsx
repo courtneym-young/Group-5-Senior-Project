@@ -1,9 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import AdminPage from "./pages/AdminPage";
+import UsersPage from "./pages/UsersPage";
+import BusinessesPage from "./pages/BusinessesPage";
+import PageNotFoundPage from "./pages/404Page";
 import { fetchUserGroups } from "./utils/fetchUserInfo";
 import { isUserInGroup } from "./utils/permissionsCheck";
 import { GroupRoles } from "./types/group-types";
+import { ThemeProvider } from "./components/theme-provider";
+import { Routes, Route } from "react-router-dom";
+import Layout from "./components/shared/Layout";
+import { APP_ROUTES } from "./config/UrlConfig";
 
 function App() {
   const { user, signOut } = useAuthenticator((context) => [context.user]);
@@ -13,7 +20,7 @@ function App() {
 
   const getUserGroups = useCallback(async () => {
     if (user) {
-      console.log(userGroups)
+      console.log(userGroups);
       const groups = await fetchUserGroups();
       setUserGroups(groups);
       const adminStatus = isUserInGroup(groups, GroupRoles.ADMIN);
@@ -37,14 +44,33 @@ function App() {
     }
   }, [isAdmin, user, signOut, hasCheckedAdminStatus]);
 
-  if (isAdmin === null || (user && isAdmin === false && hasCheckedAdminStatus)) {
+  if (
+    isAdmin === null ||
+    (user && isAdmin === false && hasCheckedAdminStatus)
+  ) {
     return null;
   }
 
   if (user && isAdmin === true) {
     return (
       <>
-        <AdminPage username={user.username} signOut={signOut} />
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route
+                index
+                element={
+                  <AdminPage username={user?.username} signOut={signOut} />
+                }
+              />
+              <Route path={APP_ROUTES.USERS} element={<UsersPage />} />
+              <Route path={`${APP_ROUTES.USERS}/:userId`} element={<UsersPage />} />
+              <Route path={APP_ROUTES.BUSINESSES} element={<BusinessesPage />} />
+              <Route path={`${APP_ROUTES.BUSINESSES}/:businessId`} element={<BusinessesPage />} />
+              <Route path={'*'} element={<PageNotFoundPage />} />
+            </Route>
+          </Routes>
+        </ThemeProvider>
       </>
     );
   }

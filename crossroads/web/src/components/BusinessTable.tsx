@@ -2,27 +2,23 @@ import React, { useState, useEffect } from "react";
 import { useFetchBusinessList } from "../helpers/businessHelpers";
 import { BUSINESS_STATUS_COLOR_MAPPING } from "../config/StyleConfig";
 import { formatDate } from "../helpers/timeHelpers";
-
-// Define TypeScript types
-export type BusinessStatusType = 'PENDING_REVIEW' | 'FLAGGED' | 'VERIFIED';
-
-export enum BusinessStatusTypes {
-  PENDING = 'PENDING_REVIEW',
-  FLAGGED = 'FLAGGED',
-  VERIFIED = 'VERIFIED',
-}
+import {
+  BusinessStatusType,
+  BusinessStatusTypes,
+} from "../types/business-types";
+import { APP_ROUTES } from "../config/UrlConfig";
 
 const BusinessTable: React.FC = () => {
   const { businesses: allBusinesses } = useFetchBusinessList();
-  
+
   // State for filters
   const [statusFilters, setStatusFilters] = useState<BusinessStatusType[]>([]);
   const [filteredBusinesses, setFilteredBusinesses] = useState(allBusinesses);
-  
+
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   // State for time filter
   const [timeFilter, setTimeFilter] = useState("Last 7 days");
   const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
@@ -31,20 +27,20 @@ const BusinessTable: React.FC = () => {
   // Effect to filter businesses when filters change
   useEffect(() => {
     let result = [...allBusinesses];
-    
+
     // Apply status filters if any are selected
     if (statusFilters.length > 0) {
-      result = result.filter(business => 
+      result = result.filter((business) =>
         statusFilters.includes(business.status as BusinessStatusType)
       );
     }
-    
+
     // Apply time filter logic (simplified for example)
     if (timeFilter !== "All time") {
       const now = new Date();
-      let cutoffDate = new Date();
-      
-      switch(timeFilter) {
+      const cutoffDate = new Date();
+
+      switch (timeFilter) {
         case "Today":
           cutoffDate.setHours(0, 0, 0, 0);
           break;
@@ -65,13 +61,13 @@ const BusinessTable: React.FC = () => {
           // No time filtering
           break;
       }
-      
-      result = result.filter(business => {
+
+      result = result.filter((business) => {
         const updateDate = new Date(business.updatedAt || "");
         return updateDate >= cutoffDate;
       });
     }
-    
+
     setFilteredBusinesses(result);
     // Reset to first page when filters change
     setCurrentPage(1);
@@ -80,13 +76,16 @@ const BusinessTable: React.FC = () => {
   // Calculate pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentBusinesses = filteredBusinesses.slice(indexOfFirstItem, indexOfLastItem);
+  const currentBusinesses = filteredBusinesses.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
   const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage);
 
   // Toggle status filter
   const toggleStatusFilter = (status: BusinessStatusType) => {
     if (statusFilters.includes(status)) {
-      setStatusFilters(statusFilters.filter(s => s !== status));
+      setStatusFilters(statusFilters.filter((s) => s !== status));
     } else {
       setStatusFilters([...statusFilters, status]);
     }
@@ -94,20 +93,22 @@ const BusinessTable: React.FC = () => {
 
   // Get count of businesses by status
   const getStatusCount = (status: BusinessStatusType) => {
-    return allBusinesses.filter(business => business.status === status).length;
+    return allBusinesses.filter((business) => business.status === status)
+      .length;
   };
 
   // Handle pagination
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-  const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
-  const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+  const goToNextPage = () =>
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const goToPrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
 
   // Toggle dropdowns
   const toggleTimeDropdown = () => {
     setIsTimeDropdownOpen(!isTimeDropdownOpen);
     if (isFilterDropdownOpen) setIsFilterDropdownOpen(false);
   };
-  
+
   const toggleFilterDropdown = () => {
     setIsFilterDropdownOpen(!isFilterDropdownOpen);
     if (isTimeDropdownOpen) setIsTimeDropdownOpen(false);
@@ -151,9 +152,7 @@ const BusinessTable: React.FC = () => {
             </button>
             {/* <!-- Status filter dropdown menu --> */}
             {isFilterDropdownOpen && (
-              <div
-                className="z-10 w-56 p-3 bg-white rounded-lg shadow dark:bg-gray-700 absolute top-full left-0 mt-2"
-              >
+              <div className="z-10 w-56 p-3 bg-white rounded-lg shadow dark:bg-gray-700 absolute top-full left-0 mt-2">
                 <h6 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
                   Status
                 </h6>
@@ -162,23 +161,32 @@ const BusinessTable: React.FC = () => {
                     <input
                       id="status-pending"
                       type="checkbox"
-                      checked={statusFilters.includes(BusinessStatusTypes.PENDING)}
-                      onChange={() => toggleStatusFilter(BusinessStatusTypes.PENDING)}
+                      checked={statusFilters.includes(
+                        BusinessStatusTypes.PENDING
+                      )}
+                      onChange={() =>
+                        toggleStatusFilter(BusinessStatusTypes.PENDING)
+                      }
                       className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
                     />
                     <label
                       htmlFor="status-pending"
                       className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100"
                     >
-                      Pending Review ({getStatusCount(BusinessStatusTypes.PENDING)})
+                      Pending Review (
+                      {getStatusCount(BusinessStatusTypes.PENDING)})
                     </label>
                   </li>
                   <li className="flex items-center">
                     <input
                       id="status-flagged"
                       type="checkbox"
-                      checked={statusFilters.includes(BusinessStatusTypes.FLAGGED)}
-                      onChange={() => toggleStatusFilter(BusinessStatusTypes.FLAGGED)}
+                      checked={statusFilters.includes(
+                        BusinessStatusTypes.FLAGGED
+                      )}
+                      onChange={() =>
+                        toggleStatusFilter(BusinessStatusTypes.FLAGGED)
+                      }
                       className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
                     />
                     <label
@@ -192,8 +200,12 @@ const BusinessTable: React.FC = () => {
                     <input
                       id="status-verified"
                       type="checkbox"
-                      checked={statusFilters.includes(BusinessStatusTypes.VERIFIED)}
-                      onChange={() => toggleStatusFilter(BusinessStatusTypes.VERIFIED)}
+                      checked={statusFilters.includes(
+                        BusinessStatusTypes.VERIFIED
+                      )}
+                      onChange={() =>
+                        toggleStatusFilter(BusinessStatusTypes.VERIFIED)
+                      }
                       className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
                     />
                     <label
@@ -257,9 +269,18 @@ const BusinessTable: React.FC = () => {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800">
                   {currentBusinesses.map((business, index) => (
-                    <tr key={business.businessId} className={index % 2 === 0 ? "bg-gray-50 dark:bg-gray-700" : ""}>
+                    <tr
+                      key={business.businessId}
+                      className={
+                        index % 2 === 0 ? "bg-gray-50 dark:bg-gray-700" : ""
+                      }
+                    >
                       <td className="p-4 text-sm font-normal text-gray-900 whitespace-nowrap dark:text-white">
-                        <a href={business.website ?? '#'} target="_blank" rel="noopener noreferrer"> 
+                        <a
+                          href={business.website ?? "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <span className="font-semibold">{business.name}</span>
                         </a>
                       </td>
@@ -267,11 +288,12 @@ const BusinessTable: React.FC = () => {
                         {formatDate(business.updatedAt ?? "")}
                       </td>
                       <td className="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white">
-                        {business.businessId}
+                        <a href={`${APP_ROUTES.BUSINESSES}/${business.businessId}`}>{business.businessId}</a>
                       </td>
                       <td className="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                        <a href={`user/${business.user?.id}`}>
-                          {business.user?.firstName || "N/A"} {business.user?.lastName || "N/A"} 
+                        <a href={`${APP_ROUTES.USERS}/${business.user?.id}`}>
+                          {business.user?.firstName || "N/A"}{" "}
+                          {business.user?.lastName || "N/A"}
                         </a>
                       </td>
                       <td className="inline-flex items-center p-4 space-x-2 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
@@ -296,7 +318,7 @@ const BusinessTable: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* <!-- Pagination --> */}
       <div className="flex items-center justify-between pt-4">
         <div className="flex space-x-2">
@@ -322,7 +344,7 @@ const BusinessTable: React.FC = () => {
               } else {
                 pageNum = currentPage - 2 + i;
               }
-              
+
               if (pageNum > 0 && pageNum <= totalPages) {
                 return (
                   <button
@@ -354,10 +376,12 @@ const BusinessTable: React.FC = () => {
           </button>
         </div>
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredBusinesses.length)} of {filteredBusinesses.length}
+          Showing {indexOfFirstItem + 1}-
+          {Math.min(indexOfLastItem, filteredBusinesses.length)} of{" "}
+          {filteredBusinesses.length}
         </div>
       </div>
-      
+
       {/* <!-- Card Footer --> */}
       <div className="flex items-center justify-between pt-3 sm:pt-6">
         <div className="relative">
@@ -384,9 +408,7 @@ const BusinessTable: React.FC = () => {
           </button>
           {/* <!-- Time filter dropdown menu --> */}
           {isTimeDropdownOpen && (
-            <div
-              className="z-50 absolute left-0 bottom-full mb-2 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600"
-            >
+            <div className="z-50 absolute left-0 bottom-full mb-2 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600">
               <div className="px-4 py-3" role="none">
                 <p
                   className="text-sm font-medium text-gray-900 truncate dark:text-white"
@@ -467,7 +489,9 @@ const BusinessTable: React.FC = () => {
           )}
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Items per page:</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Items per page:
+          </span>
           <select
             value={itemsPerPage}
             onChange={(e) => {

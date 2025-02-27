@@ -227,23 +227,23 @@ const Navbar: React.FC = () => {
               
               {isUserMenuOpen && (
                 <div className="absolute z-50 mt-2 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600 right-0 top-12">
-                  <div className="px-4 py-3" role="none">
-                    <p className="text-sm text-gray-900 dark:text-white" role="none">
+                  <div className="px-4 py-3">
+                    <p className="text-sm text-gray-900 dark:text-white">
                     {userAttributes?.preferred_username ?? "N/A"} - {userAttributes?.given_name ?? "N/A"} {userAttributes?.family_name ?? "N/A"}
                     </p>
-                    <p className="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none">
+                    <p className="text-sm font-medium text-gray-900 truncate dark:text-gray-300">
                       {userAttributes?.email ?? "N/A"}
                     </p>
                   </div>
-                  <ul className="py-1" role="none">
+                  <ul className="py-1">
                     <li>
-                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Dashboard</a>
+                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white">Dashboard</a>
                     </li>
                     <li>
-                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Settings</a>
+                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white">Settings</a>
                     </li>
                     <li>
-                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Sign out</a>
+                      <button onClick={signOut} className="block cursor-pointer w-full text-left px-4 py-2 text-sm text-gray-700 bg-transparent border-none outline-none hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white">Sign out</button>
                     </li>
                   </ul>
                 </div>
