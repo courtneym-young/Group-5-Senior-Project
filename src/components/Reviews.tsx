@@ -1,130 +1,74 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState } from 'react';
+import { useParams, Link} from 'react-router-dom';
 
-// Review interface
 interface Review {
   user: string;
   rating: number;
   comment: string;
 }
 
-// Product interface
-interface Product {
-  id: string;
-  name: string;
-}
-
-const fakeProducts: Product[] = [
-  { id: "1", name: "Wireless Headphones" },
-  { id: "2", name: "Smartwatch" },
-];
-
-const fakeReviews: Record<string, Review[]> = {
-  "1": [
-    { user: "Alice", rating: 5, comment: "Great headphones! The sound quality is amazing." },
-    { user: "Bob", rating: 4, comment: "Very comfortable, but a bit pricey." },
-  ],
-  "2": [
-    { user: "Charlie", rating: 4, comment: "Nice smartwatch, but the battery could be better." },
-  ],
-};
-
-// Helper function to generate stars
-const renderStars = (rating: number) => {
-  return "⭐".repeat(rating).padEnd(5, "☆"); // Fills remaining with empty stars
-};
-
 const ReviewsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
-  // Add a review form state
-  const [newReview, setNewReview] = useState({
-    user: "",
-    rating: 0,
-    comment: "",
-  });
+  // Sample reviews for the product
+  const initialReviews: Review[] = [
+    { user: 'Alice', rating: 5, comment: 'Excellent product! Totally worth it.' },
+    { user: 'Bob', rating: 4, comment: 'Very good, but could be improved.' },
+    { user: 'Charlie', rating: 3, comment: 'It’s okay, not the best experience.' },
+    { user: 'Dave', rating: 5, comment: 'Love it, great quality!' },
+    { user: 'Eve', rating: 2, comment: 'Not satisfied, it broke after a week.' },
+  ];
 
-  // If id is undefined, show a fallback message
-  if (!id) {
-    return <div>No product found.</div>;
-  }
+  const [reviews, setReviews] = useState<Review[]>(initialReviews);
 
-  // Get product details based on the ID
-  const product = fakeProducts.find((product) => product.id === id);
+  // Function to sort reviews by rating
+  const sortByRating = (a: Review, b: Review) => b.rating - a.rating;
 
-  // Check if the product exists, and fetch reviews if it does
-  const reviews = product ? fakeReviews[id] : [];
-
-  const handleSubmitReview = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newReview.user && newReview.rating && newReview.comment) {
-      console.log("New review submitted:", newReview);
-      // Here you would update state or send a request to the backend
-    }
+  // Function to sort reviews by keywords (if the comment includes the keyword)
+  const sortByKeyword = (a: Review, b: Review) => {
+    const keyword = 'good';  // Example keyword, you could make this dynamic
+    const aContainsKeyword = a.comment.toLowerCase().includes(keyword);
+    const bContainsKeyword = b.comment.toLowerCase().includes(keyword);
+    
+    if (aContainsKeyword === bContainsKeyword) return 0;
+    return aContainsKeyword ? -1 : 1;
   };
 
-  if (!product) {
-    return <div>Product not found.</div>;
-  }
+  // Sort the reviews by the selected option (rating or keyword)
+  const handleSortChange = (sortMethod: 'rating' | 'keyword') => {
+    let sortedReviews;
+    if (sortMethod === 'rating') {
+      sortedReviews = [...reviews].sort(sortByRating);  // Sort by rating
+    } else {
+      sortedReviews = [...reviews].sort(sortByKeyword);  // Sort by keyword
+    }
+    setReviews(sortedReviews);
+  };
 
   return (
     <div className="reviews-page">
-      <h1>Reviews for {product.name}</h1>
+      <h2>Reviews for Product {id}</h2>
 
-      {/* Display reviews with star ratings */}
-      <div className="reviews-list">
-        {reviews.length === 0 ? (
-          <p>No reviews yet.</p>
-        ) : (
-          reviews.map((review, index) => (
-            <div key={index} className="review">
-              <h3>{review.user}</h3>
-              <p>{renderStars(review.rating)}</p> {/* Star rating display */}
-              <p>{review.comment}</p>
-            </div>
-          ))
-        )}
+      {/* Sort by options */}
+      <div>
+        <button onClick={() => handleSortChange('rating')}>Sort by Rating</button>
+        <button onClick={() => handleSortChange('keyword')}>Sort by Keyword ("good")</button>
       </div>
 
-      {/* Review form */}
-      <h3>Submit a Review</h3>
-      <form onSubmit={handleSubmitReview}>
-        <label>
-          Name:
-          <input
-            type="text"
-            value={newReview.user}
-            onChange={(e) => setNewReview({ ...newReview, user: e.target.value })}
-            required
-          />
-        </label>
-
-        <label>
-          Rating:
-          <div className="star-rating">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <span
-                key={star}
-                onClick={() => setNewReview({ ...newReview, rating: star })}
-                style={{ cursor: "pointer", fontSize: "20px" }}
-              >
-                {star <= newReview.rating ? "⭐" : "☆"}
-              </span>
-            ))}
+      {/* Display reviews */}
+      {reviews.length === 0 ? (
+        <p>No reviews yet.</p>
+      ) : (
+        reviews.map((review, index) => (
+          <div key={index} className="review-item">
+            <p><strong>{review.user}</strong> rated it {review.rating} stars</p>
+            <p>{review.comment}</p>
           </div>
-        </label>
+        ))
+      )}
 
-        <label>
-          Comment:
-          <textarea
-            value={newReview.comment}
-            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-            required
-          />
-        </label>
-
-        <button type="submit">Submit Review</button>
-      </form>
+      {/* Back to Product Link */}
+      <Link to={`/products/${id}`}>Back to Product</Link>
     </div>
   );
 };

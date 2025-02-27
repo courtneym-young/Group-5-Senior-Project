@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useParams } from 'react-r
 import BusinessProfile from './components/BusinessProfile';
 import ProductPage from './components/Product';
 import ReviewsPage from './components/Reviews';
+import Featured from './components/Featured';
 
 // Business data interface
 interface Business {
@@ -10,9 +11,11 @@ interface Business {
   contactInfo: string;
   address: string;
   hours: string;
+  category: string;
   minorityOwned: boolean;
   products: Product[];
   reviews: Review[];
+  imageUrl?: string;
 }
 
 interface Product {
@@ -160,6 +163,7 @@ const App: React.FC = () => {
       contactInfo: 'tech@innovators.com',
       address: '123 Innovation Rd, Silicon Valley, CA',
       hours: '9:00 AM - 5:00 PM',
+      category: 'Technology',
       minorityOwned: true,
       products: [
         { id: 1, name: 'Wireless Headphones', description: 'Nice headphones', price: 100 },
@@ -169,6 +173,7 @@ const App: React.FC = () => {
         { user: 'sydneydenae', rating: 5, comment: 'I love this business.' },
         { user: 'howardstudent1', rating: 4, comment: 'I like this business.' },
       ],
+      imageUrl: '/images/tech.png',
     },
     {
       name: 'Plant People',
@@ -176,6 +181,7 @@ const App: React.FC = () => {
       address: '123 Plant Rd, Plant Valley, CA',
       hours: '11:00 AM - 5:00 PM',
       minorityOwned: true,
+      category: 'Plants',
       products: [
         { id: 1, name: 'Snake Plant', description: 'Big striped plant.', price: 30 },
         { id: 2, name: 'Cactus', description: 'Prickly plant', price: 5 },
@@ -184,16 +190,22 @@ const App: React.FC = () => {
         { user: 'sydneydenae', rating: 5, comment: 'I love this business. I got plants' },
         { user: 'howardstudent1', rating: 2, comment: 'My plant died.' },
       ],
+      imageUrl: '/images/plant.png',
     },
   ];
 
   return (
     <Router>
-      <nav>
-        <Link to="/">Home</Link>
+      <nav className="links-container">
+      <Link to="/featured">Featured</Link>
+      <Link to="/">Search</Link>
+      <Link to="/insights">Insights</Link>
+      <Link to="/profile">Profile</Link>
+      <Link to="/messages">Messages</Link>
       </nav>
 
       <Routes>
+        <Route path="/featured" element={<Featured businesses={fakeBusinesses}/>}/>
         <Route path="/" element={<BusinessSearch businesses={fakeBusinesses} />} />
         <Route path="/profile/:name" element={<BusinessProfilePage businesses={fakeBusinesses} />} />
         <Route path="/profile/:name/products" element={<BusinessProductsPage businesses={fakeBusinesses} />} />
