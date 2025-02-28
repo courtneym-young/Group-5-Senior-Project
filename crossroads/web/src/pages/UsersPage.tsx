@@ -63,7 +63,7 @@ const UsersPage: FunctionComponent<UserPageProps> = () => {
     setIsEditing(!isEditing);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     if (editedUser) {
         setEditedUser({
             ...editedUser,
@@ -184,7 +184,7 @@ const handleSaveChanges = async () => {
                       <input
                         type="text"
                         className="mt-1 block w-full p-2 border rounded"
-                        value={editedUser.firstName || ""}
+                        value={editedUser?.firstName || ""}
                         onChange={(e) => handleInputChange("firstName", e.target.value)}
                       />
                     </div>
@@ -193,7 +193,7 @@ const handleSaveChanges = async () => {
                       <input
                         type="text"
                         className="mt-1 block w-full p-2 border rounded"
-                        value={editedUser.lastName || ""}
+                        value={editedUser?.lastName || ""}
                         onChange={(e) => handleInputChange("lastName", e.target.value)}
                       />
                     </div>
@@ -203,7 +203,7 @@ const handleSaveChanges = async () => {
                     <label className="block text-sm font-medium text-gray-700">Group</label>
                     <select
                       className="mt-1 block w-full p-2 border rounded"
-                      value={editedUser.groupName || ""}
+                      value={editedUser?.groupName || ""}
                       onChange={(e) => handleInputChange("groupName", e.target.value)}
                     >
                       {groupOptions.map(group => (

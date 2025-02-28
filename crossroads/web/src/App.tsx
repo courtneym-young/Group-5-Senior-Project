@@ -1,15 +1,19 @@
 import { useEffect, useState, useCallback } from "react";
-import { useAuthenticator } from "@aws-amplify/ui-react";
+// Pages
+import Layout from "./components/shared/Layout";
 import AdminPage from "./pages/AdminPage";
 import UsersPage from "./pages/UsersPage";
 import BusinessesPage from "./pages/BusinessesPage";
 import PageNotFoundPage from "./pages/404Page";
+// AWS Amplify
+import { useAuthenticator } from "@aws-amplify/ui-react";
+// Helpers
 import { fetchUserGroups } from "./utils/fetchUserInfo";
 import { isUserInGroup } from "./utils/permissionsCheck";
 import { GroupRoles } from "./types/group-types";
 import { ThemeProvider } from "./components/theme-provider";
+// Routing
 import { Routes, Route } from "react-router-dom";
-import Layout from "./components/shared/Layout";
 import { APP_ROUTES } from "./config/UrlConfig";
 
 function App() {
@@ -64,10 +68,19 @@ function App() {
                 }
               />
               <Route path={APP_ROUTES.USERS} element={<UsersPage />} />
-              <Route path={`${APP_ROUTES.USERS}/:userId`} element={<UsersPage />} />
-              <Route path={APP_ROUTES.BUSINESSES} element={<BusinessesPage />} />
-              <Route path={`${APP_ROUTES.BUSINESSES}/:businessId`} element={<BusinessesPage />} />
-              <Route path={'*'} element={<PageNotFoundPage />} />
+              <Route
+                path={`${APP_ROUTES.USERS}/:userId`}
+                element={<UsersPage />}
+              />
+              <Route
+                path={APP_ROUTES.BUSINESSES}
+                element={<BusinessesPage />}
+              />
+              <Route
+                path={`${APP_ROUTES.BUSINESSES}/:businessId`}
+                element={<BusinessesPage />}
+              />
+              <Route path={"*"} element={<PageNotFoundPage />} />
             </Route>
           </Routes>
         </ThemeProvider>

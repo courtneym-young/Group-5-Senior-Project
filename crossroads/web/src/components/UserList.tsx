@@ -2,8 +2,7 @@ import React from "react";
 import { useFetchUsersList } from "../helpers/userHelpers";
 
 const UserList: React.FC = () => {
-  const users = useFetchUsersList();
-  console.log(users);
+  const { users } = useFetchUsersList();
   return (
     <div className="p-6 bg-white rounded-2xl shadow-md">
       <h2 className="text-xl font-semibold mb-4">User List</h2>

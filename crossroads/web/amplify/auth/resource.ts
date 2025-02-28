@@ -2,6 +2,7 @@ import { defineAuth } from "@aws-amplify/backend";
 import { postConfirmation } from "./post-confirmation/resource";
 import { preSignUp } from "./pre-sign-up/resource";
 import { addUserToGroup } from "../data/add-user-to-group/resource";
+import { removeUserFromGroup } from "../data/remove-user-from-group/resource";
 
 export const auth = defineAuth({
   loginWith: {
@@ -44,5 +45,6 @@ export const auth = defineAuth({
   access: (allow) => [
     allow.resource(postConfirmation).to(["addUserToGroup"]),
     allow.resource(addUserToGroup).to(["addUserToGroup"]),
+    allow.resource(removeUserFromGroup).to(["removeUserFromGroup"]),
   ],
 });
