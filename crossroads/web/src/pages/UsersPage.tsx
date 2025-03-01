@@ -4,7 +4,7 @@ import { useFetchUsersList, useFetchUserById, updateUser } from "../helpers/user
 import { changeUserGroup } from "../helpers/userHelpers";
 import { formatDate } from "../helpers/timeHelpers";
 import { GroupType } from "../types/group-types";
-import type { Schema } from "../../amplify/data/resource";
+import type { Schema } from "@/data-schema";
 
 interface UserPageProps {}
 
@@ -23,6 +23,7 @@ const UsersPage: FunctionComponent<UserPageProps> = () => {
   // Reset edited user when selected user changes
   useEffect(() => {
     if (user) {
+      console.log(editedUser)
       setEditedUser(user);
     } else {
       setEditedUser(null);
