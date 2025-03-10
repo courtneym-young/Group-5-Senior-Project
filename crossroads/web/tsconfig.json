@@ -9,10 +9,6 @@
 
 
     "baseUrl": ".",
-    "paths": {
-      "@/data-schema": ["./packages/my-shared-backend/amplify/data/resource"],
-      "@/amplify-outputs": ["./packages/my-shared-backend/amplify_outputs.json"]
-    },
 
     /* Bundler mode */
     "moduleResolution": "bundler",

@@ -4,7 +4,7 @@ import { useFetchUsersList, useFetchUserById, updateUser } from "../helpers/user
 import { changeUserGroup } from "../helpers/userHelpers";
 import { formatDate } from "../helpers/timeHelpers";
 import { GroupType } from "../types/group-types";
-import type { Schema } from "@/data-schema";
+import type { Schema } from "../../amplify/data/resource";
 
 interface UserPageProps {}
 
