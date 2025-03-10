@@ -20,7 +20,7 @@ const BusinessTable: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // State for time filter
-  const [timeFilter, setTimeFilter] = useState("Last 7 days");
+  const [timeFilter, setTimeFilter] = useState("All time");
   const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
 

@@ -4,7 +4,7 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import App from "./App.tsx";
 import "./styles/index.css";
 import { Amplify } from "aws-amplify";
-import outputs from "../../packages/my-shared-backend/amplify_outputs.json";
+import outputs from "../amplify_outputs.json";
 import "@aws-amplify/ui-react/styles.css";
 import { CustomAuth, formFields } from "./auth/AuthConfiguration.tsx";
 import services from "./auth/CustomServices.tsx";

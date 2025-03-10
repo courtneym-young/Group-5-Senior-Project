@@ -6,4 +6,3 @@ export const BUSINESS_STATUS_COLOR_MAPPING: Record<BusinessStatusType | "UNKNOWN
     VERIFIED: "bg-green-100 text-green-800 dark:bg-gray-700 dark:text-green-400 border border-green-100 dark:border-green-500",
     UNKNOWN : "bg-orange-100 text-orange-800 border border-orange-100 dark:bg-gray-700 dark:border-orange-300 dark:text-orange-300"
 };
-
