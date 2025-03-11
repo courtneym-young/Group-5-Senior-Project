@@ -17,3 +17,48 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+
+
+
+/* Overall container styling */
+[data-amplify-authenticator] {
+  --amplify-components-authenticator-router-box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  --amplify-components-authenticator-router-border-width: 0;
+  --amplify-components-authenticator-router-border-radius: 16px;
+  --amplify-components-authenticator-form-padding: 20px;
+  --amplify-components-authenticator-form-max-width: 375px;
+  
+  /* Button styling to match MUI success button */
+  --amplify-components-button-primary-background-color: #2e7d32; /* MUI success color */
+  --amplify-components-button-primary-hover-background-color: #1b5e20; /* MUI success dark */
+  --amplify-components-button-border-radius: 24px;
+  --amplify-components-button-padding-block: 12px;
+  
+  /* Links and focused fields */
+  --amplify-components-button-link-color: #2e7d32; /* MUI success color */
+  --amplify-components-fieldcontrol-focus-border-color: #2e7d32; /* MUI success color */
+  --amplify-components-fieldcontrol-focus-box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2); /* MUI success color with opacity */
+  
+  /* Tabs for Sign In/Sign Up */
+  --amplify-components-tabs-item-active-border-color: #2e7d32; /* MUI success color */
+  --amplify-components-tabs-item-active-color: #2e7d32; /* MUI success color */
+}
+
+/* Make the button styling more like MUI buttons */
+.amplify-button--primary {
+  text-transform: none;
+  font-weight: 500;
+  margin-top: 16px;
+}
+
+/* Add spacing between form fields */
+.amplify-field {
+  margin: 8px 0;
+}
+
+/* Style the checkbox to be more like MUI */
+.amplify-checkbox__label {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.87);
+}

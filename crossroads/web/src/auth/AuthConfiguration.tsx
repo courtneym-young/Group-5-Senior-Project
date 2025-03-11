@@ -1,49 +1,59 @@
 import { useTheme } from "@aws-amplify/ui-react";
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { View, Text, Image, Heading, Button } from "@aws-amplify/ui-react";
+import { View, Text, Heading, Button } from "@aws-amplify/ui-react";
 
 export const CustomAuth = {
   Header() {
     const { tokens } = useTheme();
-
     return (
       <View textAlign="center" padding={tokens.space.large}>
-        <Image
-          alt="Amplify logo"
-          src="https://docs.amplify.aws/assets/logo-dark.svg"
-        />
+        <Heading level={5} fontWeight="bold">
+          User Sign Up
+        </Heading>
       </View>
     );
   },
-
   Footer() {
-    const { tokens } = useTheme();
-
     return (
-      <View textAlign="center" padding={tokens.space.large}>
-        <Text color={tokens.colors.neutral[80]}>
-          &copy; All Rights Reserved
-        </Text>
+      <View textAlign="center" padding="16px 0">
+        <Text color="neutral.80">&copy; Your Company 2025</Text>
       </View>
     );
   },
-
+  SignUp: {
+    Header() {
+      return (
+        <Heading level={5} fontWeight="bold" textAlign="center">
+          Create a new account
+        </Heading>
+      );
+    },
+    Footer() {
+      const { toSignIn } = useAuthenticator();
+      return (
+        <View textAlign="center">
+          <Button
+            fontWeight="normal"
+            onClick={toSignIn}
+            size="small"
+            variation="link"
+          >
+            Already have an account? Login
+          </Button>
+        </View>
+      );
+    },
+  },
   SignIn: {
     Header() {
-      const { tokens } = useTheme();
-
       return (
-        <Heading
-          padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
-          level={3}
-        >
-          Crossroads Admin Panel
+        <Heading level={5} fontWeight="bold" textAlign="center">
+          Login to your Crossroad's Account
         </Heading>
       );
     },
     Footer() {
       const { toForgotPassword } = useAuthenticator();
-
       return (
         <View textAlign="center">
           <Button
@@ -52,7 +62,7 @@ export const CustomAuth = {
             size="small"
             variation="link"
           >
-            Reset Password
+            Forgot Password?
           </Button>
         </View>
       );
@@ -64,6 +74,50 @@ export const formFields = {
   signIn: {
     username: {
       placeholder: "Enter your email",
+    },
+  },
+  signUp: {
+    email: {
+      order: 1,
+      label: "Enter your email",
+      placeholder: "Enter your email",
+      isRequired: true,
+    },
+    given_name: {
+      order: 2,
+      label: "Enter your first name",
+      placeholder: "Enter your first name",
+      isRequired: true,
+    },
+    family_name: {
+      order: 3,
+      label: "Enter your last name",
+      placeholder: "Enter your last name",
+      isRequired: true,
+    },
+    birthdate: {
+      order: 4,
+      label: "Enter your birthdate",
+      placeholder: "Enter your birthdate",
+      isRequired: true,
+    },
+    preferred_username: {
+      order: 5,
+      label: "Enter your username",
+      placeholder: "Enter your username",
+      isRequired: true,
+    },
+    password: {
+      order: 6,
+      label: "Enter your password",
+      placeholder: "Enter your password",
+      isRequired: true,
+    },
+    confirm_password: {
+      order: 7,
+      label: "Confirm your password",
+      placeholder: "Confirm your password",
+      isRequired: true,
     },
   },
   forceNewPassword: {

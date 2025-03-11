@@ -7,7 +7,16 @@ import Layout from "./components/shared/Layout";
 import { ThemeProvider } from "./components/admin/theme-provider";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 
-// Pages
+// Phone Views
+import Signup from "./components/mobile/Signup";
+import Login from "./components/mobile/Login";
+import Explore from "./components/mobile/Explore";
+import Search from "./components/mobile/Search";
+import AddBusiness from "./components/mobile/AddBusiness";
+import Messages from "./components/mobile/Messages";
+import Market from "./components/mobile/Market";
+
+// Admin Pages
 import AdminPage from "./pages/Admin/AdminPage";
 import UsersPage from "./pages/Admin/UsersPage";
 import BusinessesPage from "./pages/Admin/BusinessesPage";
@@ -50,7 +59,15 @@ function App() {
 
   // Customer routes (non-admin authenticated users)
   if (user && isAdmin === false) {
-    return <div>{/* Add customer routes here */}</div>;
+    return (
+        <Routes>
+          <Route path="/" element={<Explore />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/add-business" element={<AddBusiness />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/market" element={<Market />} />
+        </Routes>
+    );
   }
 
   // Admin protected routes
