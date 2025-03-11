@@ -4,13 +4,13 @@ import { useAuthenticator } from "@aws-amplify/ui-react";
 
 // Components
 import Layout from "./components/shared/Layout";
-import { ThemeProvider } from "./components/theme-provider";
+import { ThemeProvider } from "./components/admin/theme-provider";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 // Pages
-import AdminPage from "./pages/AdminPage";
-import UsersPage from "./pages/UsersPage";
-import BusinessesPage from "./pages/BusinessesPage";
+import AdminPage from "./pages/Admin/AdminPage";
+import UsersPage from "./pages/Admin/UsersPage";
+import BusinessesPage from "./pages/Admin/BusinessesPage";
 import PageNotFoundPage from "./pages/404Page";
 
 // Utils and Config

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import CrossroadsLogo from "../assets/react.svg"
-import { AppNavigation } from '../config/HeaderConfig';
+import CrossroadsLogo from "../../assets/react.svg"
+import { AppNavigation } from '../../config/HeaderConfig';
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { useFetchUserAttributes } from '../helpers/userHelpers';
+import { useFetchUserAttributes } from '../../helpers/userHelpers';
 
 
 const Navbar: React.FC = () => {

@@ -1,5 +1,5 @@
 import React from "react";
-import { useFetchUsersList } from "../helpers/userHelpers";
+import { useFetchUsersList } from "../../helpers/userHelpers";
 
 const UserList: React.FC = () => {
   const { users } = useFetchUsersList();

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useFetchBusinessList } from "../helpers/businessHelpers";
-import { BUSINESS_STATUS_COLOR_MAPPING } from "../config/StyleConfig";
-import { formatDate } from "../helpers/timeHelpers";
+import { useFetchBusinessList } from "../../helpers/businessHelpers";
+import { BUSINESS_STATUS_COLOR_MAPPING } from "../../config/StyleConfig";
+import { formatDate } from "../../helpers/timeHelpers";
 import {
   BusinessStatusType,
   BusinessStatusTypes,
-} from "../types/business-types";
-import { APP_ROUTES } from "../config/UrlConfig";
+} from "../../types/business-types";
+import { APP_ROUTES } from "../../config/UrlConfig";
 
 const BusinessTable: React.FC = () => {
   const { businesses: allBusinesses } = useFetchBusinessList();

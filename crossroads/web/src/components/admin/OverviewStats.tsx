@@ -4,7 +4,7 @@ import {
   useFlaggedBusinessCount,
   useVerifiedBusinessCount,
   usePendingReviewBusinessCount
-} from "../helpers/businessHelpers";
+} from "../../helpers/businessHelpers";
 
 const OverviewStats: React.FC = () => {
   const totalBusinesses = useTotalBusinessCount();

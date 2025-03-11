@@ -1,10 +1,10 @@
 import { FunctionComponent, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useFetchUsersList, useFetchUserById, updateUser } from "../helpers/userHelpers";
-import { changeUserGroup } from "../helpers/userHelpers";
-import { formatDate } from "../helpers/timeHelpers";
-import { GroupType } from "../types/group-types";
-import type { Schema } from "../../amplify/data/resource";
+import { useFetchUsersList, useFetchUserById, updateUser } from "../../helpers/userHelpers";
+import { changeUserGroup } from "../../helpers/userHelpers";
+import { formatDate } from "../../helpers/timeHelpers";
+import { GroupType } from "../../types/group-types";
+import type { Schema } from "../../../amplify/data/resource";
 
 interface UserPageProps {}
 

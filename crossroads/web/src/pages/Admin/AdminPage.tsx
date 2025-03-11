@@ -1,6 +1,6 @@
 import { FunctionComponent } from "react";
-import OverviewStats from "../components/OverviewStats";
-import BusinessTable from "../components/BusinessTable";
+import OverviewStats from "../../components/admin/OverviewStats";
+import BusinessTable from "../../components/admin/BusinessTable";
 
 interface AdminPageProps {
   username: string;
