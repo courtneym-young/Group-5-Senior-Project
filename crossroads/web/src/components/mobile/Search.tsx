@@ -101,7 +101,7 @@ const Search: React.FC = () => {
             width: "100%",
           }}
         >
-          <IconButton onClick={() => navigate("/explore")}>
+          <IconButton onClick={() => navigate("/")}>
             <HomeIcon fontSize="large" />
           </IconButton>
           <IconButton color="primary">

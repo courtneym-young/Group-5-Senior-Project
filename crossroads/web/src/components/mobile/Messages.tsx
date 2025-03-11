@@ -52,7 +52,7 @@ const Messages: React.FC = () => {
 
         {/* Bottom Navigation */}
         <Box sx={{ display: "flex", justifyContent: "space-around", alignItems: "center", padding: "10px 0", borderTop: "1px solid #ddd", backgroundColor: "white", width: "100%" }}>
-          <IconButton onClick={() => navigate("/explore")}>
+          <IconButton onClick={() => navigate("/")}>
             <HomeIcon fontSize="large" />
           </IconButton>
           <IconButton onClick={() => navigate("/search")}>

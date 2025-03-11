@@ -8,8 +8,6 @@ import { ThemeProvider } from "./components/admin/theme-provider";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 // Phone Views
-import Signup from "./components/mobile/Signup";
-import Login from "./components/mobile/Login";
 import Explore from "./components/mobile/Explore";
 import Search from "./components/mobile/Search";
 import AddBusiness from "./components/mobile/AddBusiness";
@@ -66,6 +64,7 @@ function App() {
           <Route path="/add-business" element={<AddBusiness />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/market" element={<Market />} />
+          <Route path="*" element={<PageNotFoundPage />} />
         </Routes>
     );
   }
@@ -128,7 +127,7 @@ function App() {
   }
 
   // Return null for unauthenticated users or while determining admin status
-  return null;
+  return <p> NOPE!! </p>;
 }
 
 export default App;
