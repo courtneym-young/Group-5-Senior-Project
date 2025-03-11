@@ -288,10 +288,10 @@ const BusinessTable: React.FC = () => {
                         {formatDate(business.updatedAt ?? "")}
                       </td>
                       <td className="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white">
-                        <a href={`${APP_ROUTES.BUSINESSES}/${business.businessId}`}>{business.businessId}</a>
+                        <a href={`${APP_ROUTES.ADMIN.BUSINESSES}/${business.businessId}`}>{business.businessId}</a>
                       </td>
                       <td className="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                        <a href={`${APP_ROUTES.USERS}/${business.user?.id}`}>
+                        <a href={`${APP_ROUTES.ADMIN.USERS}/${business.user?.id}`}>
                           {business.user?.firstName || "N/A"}{" "}
                           {business.user?.lastName || "N/A"}
                         </a>
