@@ -15,6 +15,7 @@ import { ThemeProvider } from "./components/theme-provider";
 // Routing
 import { Routes, Route } from "react-router-dom";
 import { APP_ROUTES } from "./config/UrlConfig";
+import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 function App() {
   const { user, signOut } = useAuthenticator((context) => [context.user]);
@@ -60,28 +61,60 @@ function App() {
       <>
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
           <Routes>
+            {/* Public routes */}
+            {/* Customer routes */}
+
+            {/* Admin protected routes */}
+
             <Route path="/" element={<Layout />}>
               <Route
-                index
+                path={APP_ROUTES.ADMIN.BASE}
                 element={
-                  <AdminPage username={user?.username} signOut={signOut} />
+                  <ProtectedRoute
+                    allowedRoles={[GroupRoles.ADMIN]}
+                    userGroups={userGroups}
+                  >
+                    <AdminPage username={user?.username} signOut={signOut} />
+                  </ProtectedRoute>
                 }
               />
-              <Route path={APP_ROUTES.USERS} element={<UsersPage />} />
               <Route
-                path={`${APP_ROUTES.USERS}/:userId`}
-                element={<UsersPage />}
+                path={APP_ROUTES.ADMIN.USERS}
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[GroupRoles.ADMIN]}
+                    userGroups={userGroups}
+                  >
+                    <UsersPage />
+                  </ProtectedRoute>
+                }
               />
               <Route
-                path={APP_ROUTES.BUSINESSES}
-                element={<BusinessesPage />}
+                path={`${APP_ROUTES.ADMIN.USERS}/:userId`}
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[GroupRoles.ADMIN]}
+                    userGroups={userGroups}
+                  >
+                    <UsersPage />
+                  </ProtectedRoute>
+                }
               />
               <Route
-                path={`${APP_ROUTES.BUSINESSES}/:businessId`}
-                element={<BusinessesPage />}
+                path={`${APP_ROUTES.ADMIN.BUSINESSES}`}
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[GroupRoles.ADMIN]}
+                    userGroups={userGroups}
+                  >
+                    <BusinessesPage />
+                  </ProtectedRoute>
+                }
               />
               <Route path={"*"} element={<PageNotFoundPage />} />
             </Route>
+
+            {/* Owner protected routes */}
           </Routes>
         </ThemeProvider>
       </>
