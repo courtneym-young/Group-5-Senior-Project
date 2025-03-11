@@ -13,6 +13,7 @@ import Search from "./components/mobile/Search";
 import AddBusiness from "./components/mobile/AddBusiness";
 import Messages from "./components/mobile/Messages";
 import Market from "./components/mobile/Market";
+import Profile from "./components/mobile/Profile";
 
 // Admin Pages
 import AdminPage from "./pages/Admin/AdminPage";
@@ -64,6 +65,7 @@ function App() {
           <Route path="/add-business" element={<AddBusiness />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/market" element={<Market />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<PageNotFoundPage />} />
         </Routes>
     );
