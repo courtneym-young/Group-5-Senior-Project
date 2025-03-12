@@ -1,25 +1,32 @@
 // src/components/Featured.tsx
 import React from 'react';
 
-interface Product {
-    id: number;
-    name: string;
-    description: string;
-    price: number;
-  }
-  
-  interface Review {
-    user: string;
-    rating: number;
-    comment: string;
-  }
 
-  interface Deal {
-    title: string;
-    description: string;
-    oldPrice?: number;
-    newPrice?: number;
-  }
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+}
+
+interface Reply {
+  user: string;
+  comment: string;
+}
+
+interface Review {
+  user: string;
+  rating: number;
+  comment: string;
+  replies: Reply[];
+}
+
+interface Deal {
+  title: string;
+  description: string;
+  oldPrice?: number;
+  newPrice?: number;
+}
 
   interface Business {
     name: string;

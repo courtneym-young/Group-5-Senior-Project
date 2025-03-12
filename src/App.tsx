@@ -6,6 +6,32 @@ import ReviewsPage from './components/Reviews';
 import Featured from './components/Featured';
 import Promotions from './components/Promotions';
 
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+}
+
+interface Reply {
+  user: string;
+  comment: string;
+}
+
+interface Review {
+  user: string;
+  rating: number;
+  comment: string;
+  replies: Reply[];
+}
+
+interface Deal {
+  title: string;
+  description: string;
+  oldPrice?: number;
+  newPrice?: number;
+}
+
 // Business data interface
 interface Business {
   name: string;
@@ -18,26 +44,6 @@ interface Business {
   reviews: Review[];
   imageUrl: string;
   deals?: Deal[];
-}
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-}
-
-interface Deal {
-  title: string;
-  description: string;
-  oldPrice?: number;
-  newPrice?: number;
-}
-
-interface Review {
-  user: string;
-  rating: number;
-  comment: string;
 }
 
 interface SearchProps {
@@ -179,8 +185,8 @@ const App: React.FC = () => {
         { id: 2, name: 'Wireless Speaker', description: 'Cool speaker', price: 50 },
       ],
       reviews: [
-        { user: 'sydneydenae', rating: 5, comment: 'I love this business.' },
-        { user: 'howardstudent1', rating: 4, comment: 'I like this business.' },
+        { user: 'sydneydenae', rating: 5, comment: 'I love this business.', replies: [{user:"sydneyreplier", comment: "I agree!"}] },
+        { user: 'howardstudent1', rating: 4, comment: 'I like this business.', replies: [{user:"sydneyreplier", comment: "I agree i like it too!"}] },
       ],
       imageUrl: '/images/tech.png',
       deals: [
@@ -199,8 +205,8 @@ const App: React.FC = () => {
         { id: 2, name: 'Cactus', description: 'Prickly plant', price: 5 },
       ],
       reviews: [
-        { user: 'sydneydenae', rating: 5, comment: 'I love this business. I got plants' },
-        { user: 'howardstudent1', rating: 2, comment: 'My plant died.' },
+        { user: 'sydneydenae', rating: 5, comment: 'I love this business. I got plants', replies: [{user:"sydneyreplier", comment: "I agree!"}] },
+        { user: 'howardstudent1', rating: 2, comment: 'My plant died.', replies: [{user:"sydneyreplier", comment: "I'm sorry to hear that."}] },
       ],
       imageUrl: '/images/plant.png',
       deals: [
@@ -226,9 +232,8 @@ const App: React.FC = () => {
         <Route path="/" element={<BusinessSearch businesses={fakeBusinesses} />} />
         <Route path="/profile/:name" element={<BusinessProfilePage businesses={fakeBusinesses} />} />
         <Route path="/profile/:name/products" element={<BusinessProductsPage businesses={fakeBusinesses} />} />
-        <Route path="/profile/:name/reviews" element={<BusinessReviewsPage businesses={fakeBusinesses} />} />
         <Route path="/products/:id" element={<ProductPage />} />
-        <Route path="/reviews/:id" element={<ReviewsPage />} />
+        <Route path="profile/:name/reviews" element={<ReviewsPage businesses={fakeBusinesses}/>} />
       </Routes>
     </Router>
   );

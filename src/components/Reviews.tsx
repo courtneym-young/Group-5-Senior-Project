@@ -1,74 +1,118 @@
 import React, { useState } from 'react';
-import { useParams, Link} from 'react-router-dom';
+import '../App.css';
+
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+}
+
+interface Reply {
+  user: string;
+  comment: string;
+}
 
 interface Review {
   user: string;
   rating: number;
   comment: string;
+  replies: Reply[];
 }
 
-const ReviewsPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+interface Deal {
+  title: string;
+  description: string;
+  oldPrice?: number;
+  newPrice?: number;
+}
 
-  // Sample reviews for the product
-  const initialReviews: Review[] = [
-    { user: 'Alice', rating: 5, comment: 'Excellent product! Totally worth it.' },
-    { user: 'Bob', rating: 4, comment: 'Very good, but could be improved.' },
-    { user: 'Charlie', rating: 3, comment: 'It’s okay, not the best experience.' },
-    { user: 'Dave', rating: 5, comment: 'Love it, great quality!' },
-    { user: 'Eve', rating: 2, comment: 'Not satisfied, it broke after a week.' },
-  ];
+interface Business {
+  name: string;
+  contactInfo: string;
+  address: string;
+  hours: string;
+  category: string;
+  minorityOwned: boolean;
+  products: Product[];
+  reviews: Review[];
+  imageUrl?: string;
+  deals?: Deal[];
+}
 
-  const [reviews, setReviews] = useState<Review[]>(initialReviews);
+interface ReviewProps {
+  businesses: Business[];
+}
 
-  // Function to sort reviews by rating
-  const sortByRating = (a: Review, b: Review) => b.rating - a.rating;
+const ReviewsPage: React.FC<ReviewProps> = ({ businesses }) => {
+  const [replyText, setReplyText] = useState<string>('');
+  const [currentReviewIndex, setCurrentReviewIndex] = useState<number | null>(null);
 
-  // Function to sort reviews by keywords (if the comment includes the keyword)
-  const sortByKeyword = (a: Review, b: Review) => {
-    const keyword = 'good';  // Example keyword, you could make this dynamic
-    const aContainsKeyword = a.comment.toLowerCase().includes(keyword);
-    const bContainsKeyword = b.comment.toLowerCase().includes(keyword);
-    
-    if (aContainsKeyword === bContainsKeyword) return 0;
-    return aContainsKeyword ? -1 : 1;
+  const handleReplyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setReplyText(e.target.value);
   };
 
-  // Sort the reviews by the selected option (rating or keyword)
-  const handleSortChange = (sortMethod: 'rating' | 'keyword') => {
-    let sortedReviews;
-    if (sortMethod === 'rating') {
-      sortedReviews = [...reviews].sort(sortByRating);  // Sort by rating
-    } else {
-      sortedReviews = [...reviews].sort(sortByKeyword);  // Sort by keyword
+  const handleAddReply = (businessIndex: number, reviewIndex: number) => {
+    if (replyText.trim()) {
+      const updatedBusinesses = [...businesses];
+      const reply: Reply = { user: 'Current User', comment: replyText };
+
+      updatedBusinesses[businessIndex].reviews[reviewIndex].replies.push(reply);
+      setReplyText(''); // Clear input after adding reply
     }
-    setReviews(sortedReviews);
   };
 
   return (
     <div className="reviews-page">
-      <h2>Reviews for Product {id}</h2>
-
-      {/* Sort by options */}
-      <div>
-        <button onClick={() => handleSortChange('rating')}>Sort by Rating</button>
-        <button onClick={() => handleSortChange('keyword')}>Sort by Keyword ("good")</button>
-      </div>
-
-      {/* Display reviews */}
-      {reviews.length === 0 ? (
-        <p>No reviews yet.</p>
-      ) : (
-        reviews.map((review, index) => (
-          <div key={index} className="review-item">
-            <p><strong>{review.user}</strong> rated it {review.rating} stars</p>
-            <p>{review.comment}</p>
+      <h1 className="page-title">Reviews</h1>
+      <div className="reviews-container">
+        {businesses.map((business, businessIndex) => (
+          <div key={businessIndex} className="business-container">
+            <h2 className="business-name">{business.name}</h2>
+            {business.reviews.map((review, reviewIndex) => (
+              <div key={reviewIndex} className="review-container">
+                <h3 className="review-title">Review</h3>
+                <p><strong>Username:</strong> {review.user}</p>
+                <p><strong>Rating:</strong> {review.rating}</p>
+                <p><strong>Comment:</strong> {review.comment}</p>
+                {review.replies.map((reply, replyIndex) => (
+                  <div key={replyIndex} className="reply-container">
+                    <h4 className="reply-title">Reply</h4>
+                    <p><strong>Username:</strong> {reply.user}</p>
+                    <p>{reply.comment}</p>
+                  </div>
+                ))}
+                <div className="reply-input-container">
+                  {currentReviewIndex === reviewIndex ? (
+                    <>
+                      <input
+                        type="text"
+                        value={replyText}
+                        onChange={handleReplyChange}
+                        placeholder="Add your reply..."
+                        className="reply-input"
+                      />
+                      <button
+                        onClick={() => handleAddReply(businessIndex, reviewIndex)}
+                        className="reply-button"
+                      >
+                        Reply
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setCurrentReviewIndex(reviewIndex)}
+                      className="add-reply-button"
+                    >
+                      Add a reply
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        ))
-      )}
-
-      {/* Back to Product Link */}
-      <Link to={`/products/${id}`}>Back to Product</Link>
+        ))}
+      </div>
     </div>
   );
 };
