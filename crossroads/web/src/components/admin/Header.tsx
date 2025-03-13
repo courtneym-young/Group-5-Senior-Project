@@ -3,7 +3,7 @@ import CrossroadsLogo from "../../assets/react.svg"
 import { AppNavigation } from '../../config/HeaderConfig';
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { useFetchUserAttributes } from '../../helpers/userHelpers';
-
+import { APP_ROUTES } from '../../config/UrlConfig';
 
 const Navbar: React.FC = () => {
   const { signOut } = useAuthenticator((context) => [context.user]);
@@ -237,7 +237,7 @@ const Navbar: React.FC = () => {
                   </div>
                   <ul className="py-1">
                     <li>
-                      <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white">Dashboard</a>
+                      <a href={APP_ROUTES.ADMIN.PROFILE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white">Profile</a>
                     </li>
                     <li>
                       <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white">Settings</a>

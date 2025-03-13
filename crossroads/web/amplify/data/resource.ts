@@ -22,6 +22,7 @@ const schema = a
         firstName: a.string().required(),
         lastName: a.string().required(),
         birthdate: a.date().required(),
+        profilePhoto: a.string(), // URL to profile photo in S3
         reviews: a.hasMany("Review", "id"), // A user can have many reviews (One-to-Many)
         posts: a.hasMany("Post", "id"), // A user can create multiple detailed posts (One-to-Many)
         subscriptions: a.hasMany("UserBusinessSubscription", "id"), // A user can subscribe to multiple businesses (Many-to-Many)

@@ -18,6 +18,7 @@ import Profile from "./components/mobile/Profile";
 // Admin Pages
 import AdminPage from "./pages/Admin/AdminPage";
 import UsersPage from "./pages/Admin/UsersPage";
+import ProfilePage from "./pages/Admin/ProfilePage";
 import BusinessesPage from "./pages/Admin/BusinessesPage";
 import PageNotFoundPage from "./pages/404Page";
 
@@ -118,6 +119,17 @@ function App() {
                   userGroups={userGroups}
                 >
                   <BusinessesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={APP_ROUTES.ADMIN.PROFILE}
+              element={
+                <ProtectedRoute
+                  allowedRoles={[GroupRoles.ADMIN]}
+                  userGroups={userGroups}
+                >
+                  <ProfilePage />
                 </ProtectedRoute>
               }
             />

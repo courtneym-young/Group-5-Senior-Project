@@ -69,19 +69,23 @@ export const useFetchUserById = (userId: string) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const result = await client.models.User.get({ id: userId });
-        setUser(result.data);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        setError("Failed to fetch user");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchUser = async () => {
+    if (!userId) return;
+    
+    setLoading(true);
+    try {
+      const result = await client.models.User.get({ id: userId });
+      setUser(result.data);
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      setError("Failed to fetch user");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (userId) {
       fetchUser();
     } else {
@@ -89,7 +93,7 @@ export const useFetchUserById = (userId: string) => {
     }
   }, [userId]);
 
-  return { user, loading, error };
+  return { user, loading, error, refetch: fetchUser };
 };
 
 export const updateUser = async (
