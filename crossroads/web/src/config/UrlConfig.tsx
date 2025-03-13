@@ -9,7 +9,8 @@ export type AppRoutesType = {
 
 export const APP_ROUTES: AppRoutesType = {
     ADMIN: {
-        BASE: '/admin',
+        BASE: '/',
+        PROFILE: "/admin/profile",
         USERS: '/admin/users',
         BUSINESSES: '/admin/businesses',
         LOGS: '/admin/logs',

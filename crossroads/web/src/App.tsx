@@ -76,7 +76,7 @@ function App() {
     return (
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <Routes>
-          <Route path="/" element={<Layout />}>
+          <Route path={APP_ROUTES.ADMIN.BASE} element={<Layout />}>
             <Route
               path={APP_ROUTES.ADMIN.BASE}
               element={

@@ -7,6 +7,7 @@ export type ProtectedRouteProps = {
 export type AdminRoutes = {
   BASE: string,
   USERS: string;
+  PROFILE: string,
   BUSINESSES: string;
   LOGS: string;
   REVIEWS: string;
