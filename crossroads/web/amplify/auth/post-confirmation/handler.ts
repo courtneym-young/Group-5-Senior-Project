@@ -31,6 +31,7 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
     console.log(`User ${event.userName} added to group ${env.GROUP_NAME}`);
 
     // Create a user profile in Amplify Data
+    console.log(event)
     await dataClient.models.User.create({
       profileOwner: `${event.request.userAttributes.sub}::${event.userName}`,
       username: event.request.userAttributes.preferredUsername || "Unknown",

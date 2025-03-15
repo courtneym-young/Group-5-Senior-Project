@@ -7,6 +7,8 @@ const services = {
     const firstName = options?.userAttributes.given_name ?? ""
     const lastName = options?.userAttributes.family_name ?? ""
     const birthdate = options?.userAttributes.birthdate ?? ""
+    const preferredUsername = options?.userAttributes.preferred_username ?? ""
+
 
     console.log(username, password, options)
 
@@ -20,6 +22,7 @@ const services = {
           given_name: firstName,
           family_name: lastName,
           birthdate: birthdate,
+          preferred_username: preferredUsername
         },
       },
     });
