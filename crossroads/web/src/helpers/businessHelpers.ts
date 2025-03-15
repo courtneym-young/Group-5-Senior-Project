@@ -1,113 +1,16 @@
 import { useEffect, useState } from "react";
 import type { Schema } from "../../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
+import { ResolvedBusiness, ResolvedBusinessEx } from "../types/business-types";
 
 const client = generateClient<Schema>();
-// type ResolvedBusiness = {
-//   id: string;
-//   name: string;
-//   businessId: string;
-//   description?: string;
-//   category?: string;
-//   address?: string;
-//   city?: string;
-//   state?: string;
-//   zip?: string;
-//   phone?: string;
-//   website?: string;
-//   email?: string;
-//   hours?: string;
-//   images?: string[];
-//   isMinorityOwned?: boolean;
-//   status: "PENDING_REVIEW" | "FLAGGED" | "VERIFIED" | null;
-//   averageRating?: number;
-//   numberOfRatings?: number;
-//   createdAt?: string;
-//   updatedAt?: string;
-//   user: {
-//     profileOwner: string;
-//     username: string;
-//     firstName: string;
-//     lastName: string;
-//     id: string,
-//   } | null;
-// };
 
-
-// export const useFetchBusinessList = () => {
-//   const [businesses, setBusinesses] = useState<ResolvedBusiness[]>([]);
-//   const [loading, setLoading] = useState<boolean>(true);
-//   const [error, setError] = useState<string | null>(null);
-
-//   useEffect(() => {
-//     const fetchBusinesses = async () => {
-//       try {
-//         // Fetch businesses with eager loading of the `user` relationship
-//         const result = await client.models.Business.list({
-//           selectionSet: [
-//             "id",
-//             "name",
-//             "businessId",
-//             "description",
-//             "category",
-//             "address",
-//             "city",
-//             "state",
-//             "zip",
-//             "phone",
-//             "website",
-//             "email",
-//             "hours",
-//             "images",
-//             "isMinorityOwned",
-//             "status",
-//             "averageRating",
-//             "numberOfRatings",
-//             "createdAt",
-//             "updatedAt",
-//             "user.profileOwner", // Eager load user fields
-//             "user.id",
-//             "user.username",
-//             "user.firstName",
-//             "user.lastName",
-//           ],
-//         });
-
-//         // Resolve the user field if it's a LazyLoader
-//         const businessesWithUsers = await Promise.all(
-//           result.data.map(async (business) => {
-//             let resolvedUser = business.user;
-
-//             // Resolve the user if it's a LazyLoader
-//             if (resolvedUser && typeof resolvedUser === "object" && "then" in resolvedUser) {
-//               resolvedUser = await resolvedUser;
-//             }
-
-//             // Create a new object with the resolved user field
-//             return {
-//               ...business,
-//               user: resolvedUser,
-//             };
-//           })
-//         );
-
-//         setBusinesses(businessesWithUsers as ResolvedBusiness[]);
-//       } catch (error) {
-//         console.error("Error fetching businesses:", error);
-//         setError("Failed to fetch businesses");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchBusinesses();
-//   }, []);
-
-//   return { businesses, loading, error };
-// };
-
-
-export const useTotalBusinessCount = () => {
+/**
+ * Hook that returns the total count of all businesses.
+ * 
+ * @returns {number} The total number of businesses in the database
+ */
+export const useCountTotalBusinesses = () => {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
@@ -125,7 +28,12 @@ export const useTotalBusinessCount = () => {
   return total;
 };
 
-export const useFlaggedBusinessCount = () => {
+/**
+ * Hook that returns the count of businesses with a "FLAGGED" status.
+ * 
+ * @returns {number} The number of flagged businesses
+ */
+export const useCountTotalFlaggedBusinesses = () => {
     const [flaggedCount, setFlaggedCount] = useState(0);
 
     useEffect(() => {
@@ -145,7 +53,12 @@ export const useFlaggedBusinessCount = () => {
     return flaggedCount;
 };
 
-export const useVerifiedBusinessCount = () => {
+/**
+ * Hook that returns the count of businesses with a "VERIFIED" status.
+ * 
+ * @returns {number} The number of verified businesses
+ */
+export const useCountTotalVerifiedBusinesses = () => {
     const [verifiedCount, setVerifiedCount] = useState(0);
 
     useEffect(() => {
@@ -165,7 +78,12 @@ export const useVerifiedBusinessCount = () => {
     return verifiedCount;
 };
 
-export const usePendingReviewBusinessCount = () => {
+/**
+ * Hook that returns the count of businesses with a "PENDING_REVIEW" status.
+ * 
+ * @returns {number} The number of businesses pending review
+ */
+export const useCountTotalPendingReviewBusinesses = () => {
   const [verifiedCount, setVerifiedCount] = useState(0);
 
   useEffect(() => {
@@ -183,4 +101,141 @@ export const usePendingReviewBusinessCount = () => {
   }, []);
 
   return verifiedCount;
+};
+
+/**
+ * Hook to fetch a list of businesses without user information.
+ * 
+ * @returns {Object} Object containing:
+ *   - businesses: Array of business objects without user details
+ *   - loading: Boolean indicating if data is being fetched
+ *   - error: Error message if fetch failed, or null if successful
+ */
+export const useFetchBusinessList = () => {
+  const [businesses, setBusinesses] = useState<ResolvedBusiness[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      try {
+        const result = await client.models.Business.list({
+          selectionSet: [
+            "id",
+            "name",
+            "userId",
+            "description",
+            "category",
+            "location.streetAddress",
+            "location.secondaryAddress",
+            "location.city",
+            "location.state",
+            "location.zip",
+            "phone",
+            "website",
+            "email",
+            "hours",
+            "profilePhoto",
+            "isMinorityOwned",
+            "status",
+            "averageRating",
+            "createdAt",
+            "updatedAt",
+          ],
+        });
+
+        setBusinesses(result.data as ResolvedBusiness[]);
+      } catch (error) {
+        console.error("Error fetching businesses:", error);
+        setError("Failed to fetch businesses");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBusinesses();
+  }, []);
+
+  return { businesses, loading, error };
+}
+
+/**
+ * Extended version of useFetchBusinessList that also loads user information.
+ * This hook fetches businesses with their associated user data.
+ * 
+ * @returns {Object} Object containing:
+ *   - businesses: Array of business objects with user details
+ *   - loading: Boolean indicating if data is being fetched
+ *   - error: Error message if fetch failed, or null if successful
+ */
+export const useFetchBusinessListEx = () => {
+  const [businesses, setBusinesses] = useState<ResolvedBusinessEx[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      try {
+        // Fetch businesses with fields that match the actual schema
+        const result = await client.models.Business.list({
+          selectionSet: [
+            "id",
+            "name",
+            "userId",
+            "description",
+            "category",
+            "location.streetAddress",
+            "location.secondaryAddress",
+            "location.city",
+            "location.state",
+            "location.zip",
+            "phone",
+            "website",
+            "email",
+            "hours",
+            "profilePhoto",
+            "isMinorityOwned",
+            "status",
+            "averageRating",
+            "createdAt",
+            "updatedAt",
+            "user.profileOwner",
+            "user.id",
+            "user.username",
+            "user.firstName",
+            "user.lastName",
+          ],
+        });
+
+        // Resolve the user field if it's a LazyLoader
+        const businessesWithUsers = await Promise.all(
+          result.data.map(async (business) => {
+            let resolvedUser = business.user;
+
+            // Resolve the user if it's a LazyLoader
+            if (resolvedUser && typeof resolvedUser === "object" && "then" in resolvedUser) {
+              resolvedUser = await resolvedUser;
+            }
+
+            // Create a new object with the resolved user field
+            return {
+              ...business,
+              user: resolvedUser,
+            };
+          })
+        );
+
+        setBusinesses(businessesWithUsers as ResolvedBusinessEx[]);
+      } catch (error) {
+        console.error("Error fetching businesses:", error);
+        setError("Failed to fetch businesses");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBusinesses();
+  }, []);
+
+  return { businesses, loading, error };
 };

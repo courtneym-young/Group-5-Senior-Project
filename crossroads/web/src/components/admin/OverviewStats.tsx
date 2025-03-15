@@ -1,16 +1,16 @@
 import React from "react";
 import {
-  useTotalBusinessCount,
-  useFlaggedBusinessCount,
-  useVerifiedBusinessCount,
-  usePendingReviewBusinessCount
+  useCountTotalBusinesses,
+  useCountTotalFlaggedBusinesses,
+  useCountTotalVerifiedBusinesses,
+  useCountTotalPendingReviewBusinesses
 } from "../../helpers/businessHelpers";
 
 const OverviewStats: React.FC = () => {
-  const totalBusinesses = useTotalBusinessCount();
-  const totalFlaggedBusinesses = useFlaggedBusinessCount();
-  const verifiedBusinesses = useVerifiedBusinessCount();
-  const totalPendingBusinesses = usePendingReviewBusinessCount()
+  const totalBusinesses = useCountTotalBusinesses();
+  const totalFlaggedBusinesses = useCountTotalFlaggedBusinesses();
+  const verifiedBusinesses = useCountTotalVerifiedBusinesses();
+  const totalPendingBusinesses = useCountTotalPendingReviewBusinesses()
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
