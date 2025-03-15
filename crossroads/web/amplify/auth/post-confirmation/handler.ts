@@ -28,13 +28,13 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
       UserPoolId: event.userPoolId,
     });
     await cognitoClient.send(addToGroupCommand);
-    console.log(`User ${event.userName} added to group ${env.GROUP_NAME}`);
+
+    const username = event.request.userAttributes.preferred_username  || "Unknown"
 
     // Create a user profile in Amplify Data
-    console.log(event)
     await dataClient.models.User.create({
-      profileOwner: `${event.request.userAttributes.sub}::${event.userName}`,
-      username: event.request.userAttributes.preferredUsername || "Unknown",
+      profileOwner: `${username}::${event.request.userAttributes.sub}`,
+      username: username,
       groupName: env.GROUP_NAME,
       firstName: event.request.userAttributes.given_name || "Unknown",
       lastName: event.request.userAttributes.family_name || "Unknown",
