@@ -239,3 +239,17 @@ export const useFetchBusinessListEx = () => {
 
   return { businesses, loading, error };
 };
+
+// useCreateBusinessAsUser 
+// createBusinessAdmin (Admin can assign which user the business is assigned to )
+// updateBusinessUser
+// updateBusinessAdmin
+// deleteBusinessUser
+// deleteBusinessAdmin 
+// should pass in user 
+
+// updateBusinessAdmin (Admin should be able to update the status
+// updateBusinessUser 
+
+// deleteBusiness 
+
