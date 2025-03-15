@@ -9,31 +9,74 @@ import { GroupType } from "../types/group-types";
 
 const client = generateClient<Schema>();
 
-export const useFetchUsersList = () => {
-    const [users, setUsers] = useState<Array<Schema["User"]["type"]>>([]);
+export const useFetchUsersList = (excludeCurrentUser = true) => {
+  const [users, setUsers] = useState<Array<Schema["User"]["type"]>>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+      const fetchUsers = async () => {
+          try {
+              setLoading(true);
+              // First get current user attributes if we need to exclude current user
+              let currentUserSub: string | undefined;
+              
+              if (excludeCurrentUser) {
+                  try {
+                      const attributes = await fetchUserAttributes();
+                      currentUserSub = attributes.sub;
+                  } catch (err) {
+                      console.error("Error fetching current user attributes:", err);
+                  }
+              }
+              
+              const result = await client.models.User.list();
+              console.log(result)
+              
+              // Filter out current user if requested
+              if (excludeCurrentUser && currentUserSub) {
+                  setUsers(result.data.filter(user => {
+                      // Extract sub from profileOwner (format: sub)
+                      const userSub = user.profileOwner;
+                      return userSub !== currentUserSub;
+                  }));
+              } else {
+                  setUsers(result.data);
+              }
+              setError(null);
+          } catch (error) {
+              console.error("Error fetching users:", error);
+              setError("Failed to fetch users");
+          } finally {
+              setLoading(false);
+          }
+      };
+      
+      fetchUsers();
+  }, [excludeCurrentUser]);
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const result = await client.models.User.list();
-                setUsers(result.data);
-            } catch (error) {
-                console.error("Error fetching users:", error);
-            }
-        };
-        fetchUsers();
-    }, []);
+  const refreshUsers = async () => {
+      try {
+          const result = await client.models.User.list();
+          
+          // Filter out current user if requested
+          if (excludeCurrentUser) {
+              const attributes = await fetchUserAttributes();
+              const currentUserSub = attributes.sub;
+              
+              setUsers(result.data.filter(user => {
+                  const userSub = user.profileOwner.split('::')[1];
+                  return userSub !== currentUserSub;
+              }));
+          } else {
+              setUsers(result.data);
+          }
+      } catch (error) {
+          console.error("Error refreshing users:", error);
+      }
+  };
 
-    const refreshUsers = async () => {
-        try {
-            const result = await client.models.User.list();
-            setUsers(result.data);
-        } catch (error) {
-            console.error("Error refreshing users:", error);
-        }
-    };
-
-    return { users, refreshUsers };
+  return { users, refreshUsers, loading, error };
 };
 
 export const useFetchUserAttributes = () => {
