@@ -363,7 +363,7 @@ export const useUpdateBusinessAsUser = async (businessId: string, updatedData: C
  * @param updatedData The updated business data
  * @returns {Promise<object>} The updated business object or an error
  */
-export const useUpdateBusinessAsAdmin = async (businessId: string, updatedData: CreateBusinessAsAdminFormData) => {
+export const updateBusinessAsAdmin = async (businessId: string, updatedData: CreateBusinessAsAdminFormData) => {
   try {
     return await client.models.Business.update({
       id: businessId,
@@ -421,7 +421,7 @@ export const useDeleteBusinessAsUser = async (businessId: string) => {
  * @param businessId The ID of the business to delete
  * @returns {Promise<object>} The deleted business object or an error
  */
-export const useDeleteBusinessAsAdmin = async (businessId: string) => {
+export const deleteBusinessAsAdmin = async (businessId: string) => {
   try {
     return await client.models.Business.delete({
       id: businessId
