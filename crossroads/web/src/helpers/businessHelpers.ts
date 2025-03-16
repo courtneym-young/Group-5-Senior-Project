@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { Schema } from "../../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
-import { ResolvedBusiness, ResolvedBusinessEx } from "../types/business-types";
+import { ResolvedBusiness, ResolvedBusinessEx, BusinessStatusTypes, CreateBusinessAsUserFormData, CreateBusinessAsAdminFormData } from "../types/business-types";
+import { fetchUserAttributes } from "aws-amplify/auth";
 
 const client = generateClient<Schema>();
 
@@ -240,16 +241,194 @@ export const useFetchBusinessListEx = () => {
   return { businesses, loading, error };
 };
 
-// useCreateBusinessAsUser 
-// createBusinessAdmin (Admin can assign which user the business is assigned to )
-// updateBusinessUser
-// updateBusinessAdmin
-// deleteBusinessUser
-// deleteBusinessAdmin 
-// should pass in user 
+/**
+ * Creates a new business for the currently authenticated user.
+ * 
+ * @param businessData The business data provided by the user via the form.
+ * @returns {Promise<object>} The created business object or an error.
+ */
+export const useCreateBusinessAsUser = async (businessData: CreateBusinessAsUserFormData) => {
+  
+  try {
+    // Fetch the currently authenticated user
+    const userAttributes = await fetchUserAttributes();
+    const userId = userAttributes?.sub; // The user's unique ID
 
-// updateBusinessAdmin (Admin should be able to update the status
-// updateBusinessUser 
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
 
-// deleteBusiness 
+    // Create the business in the database
+    return await client.models.Business.create({
+          name: businessData.name,
+          userId, // Link business to the authenticated user
+          description: businessData.description || "",
+          category: businessData.category || [],
+          location: businessData.location,
+          phone: businessData.phone || "",
+          website: businessData.website || "",
+          email: businessData.email || "",
+          hours: businessData.hours || "",
+          profilePhoto: businessData.profilePhoto || "",
+          isMinorityOwned: businessData.isMinorityOwned || false,
+          status: BusinessStatusTypes.PENDING, // Default new businesses to pending review
+          averageRating: 0,
+        });
+  } catch (error) {
+    console.error("Error creating business:", error);
+    throw new Error("Failed to create business");
+  }
+}
+
+/**
+ * Admin function to create a new business and assign it to a user.
+ * 
+ * @param businessData The business data provided by the admin.
+ * @returns {Promise<object>} The created business object or an error.
+ */
+export const createBusinessAsAdmin = async (businessData: CreateBusinessAsAdminFormData) => {
+  try {
+    if (!businessData.userId) {
+      throw new Error("User ID is required to assign the business.");
+    }
+
+    // Create the business in the database
+    return await client.models.Business.create({
+          name: businessData.name,
+          userId: businessData.userId, // Assign to the specified user
+          description: businessData.description || "",
+          category: businessData.category || [],
+          location: businessData.location,
+          phone: businessData.phone || "",
+          website: businessData.website || "",
+          email: businessData.email || "",
+          hours: businessData.hours || "",
+          profilePhoto: businessData.profilePhoto || "",
+          isMinorityOwned: businessData.isMinorityOwned || false,
+          status: BusinessStatusTypes.PENDING, // Admin can review businesses after creation
+          averageRating: 0,
+        });
+  } catch (error) {
+    console.error("Error creating business as admin:", error);
+    throw new Error("Failed to create business as admin");
+  }
+};
+
+/**
+ * Hook that allows a user to update their own business.
+ * Users can only update businesses they own and cannot modify status or user association.
+ * 
+ * @param businessId The ID of the business to update
+ * @param updatedData The updated business data
+ * @returns {Promise<object>} The updated business object or an error
+ */
+export const useUpdateBusinessAsUser = async (businessId: string, updatedData: CreateBusinessAsUserFormData) => {
+  try {
+    const userAttributes = await fetchUserAttributes();
+    const userId = userAttributes?.sub;
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const existingBusiness = await client.models.Business.get({ id: businessId });
+    if (!existingBusiness || existingBusiness?.data?.userId !== userId) {
+      throw new Error("Unauthorized to update this business");
+    }
+
+    return await client.models.Business.update({
+      id: businessId,
+      name: updatedData.name,
+      description: updatedData.description,
+      category: updatedData.category,
+      location: updatedData.location,
+      phone: updatedData.phone,
+      website: updatedData.website,
+      email: updatedData.email,
+      hours: updatedData.hours,
+      profilePhoto: updatedData.profilePhoto,
+      isMinorityOwned: updatedData.isMinorityOwned,
+    });
+  } catch (error) {
+    console.error("Error updating business:", error);
+    throw new Error("Failed to update business");
+  }
+};
+
+
+/**
+ * Hook that allows an admin to update any business.
+ * Admins can modify all fields including status and user association.
+ * 
+ * @param businessId The ID of the business to update
+ * @param updatedData The updated business data
+ * @returns {Promise<object>} The updated business object or an error
+ */
+export const useUpdateBusinessAsAdmin = async (businessId: string, updatedData: CreateBusinessAsAdminFormData) => {
+  try {
+    return await client.models.Business.update({
+      id: businessId,
+      name: updatedData.name,
+      userId: updatedData.userId,
+      description: updatedData.description,
+      category: updatedData.category,
+      location: updatedData.location,
+      phone: updatedData.phone,
+      website: updatedData.website,
+      email: updatedData.email,
+      hours: updatedData.hours,
+      profilePhoto: updatedData.profilePhoto,
+      isMinorityOwned: updatedData.isMinorityOwned,
+      status: updatedData.status,
+    });
+  } catch (error) {
+    console.error("Error updating business as admin:", error);
+    throw new Error("Failed to update business as admin");
+  }
+};
+
+/**
+ * Hook that allows a user to delete their own business.
+ * Users can only delete businesses they own.
+ * 
+ * @param businessId The ID of the business to delete
+ * @returns {Promise<object>} The deleted business object or an error
+ */
+export const useDeleteBusinessAsUser = async (businessId: string) => {
+  try {
+    const userAttributes = await fetchUserAttributes();
+    const userId = userAttributes?.sub;
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+    
+    const existingBusiness = await client.models.Business.get({ id: businessId });
+    if (!existingBusiness || existingBusiness?.data?.userId !== userId) {
+      throw new Error("Unauthorized to delete this business");
+    }
+    
+    return await client.models.Business.delete({
+      id: businessId
+    });
+  } catch (error) {
+    console.error("Error deleting business:", error);
+    throw new Error("Failed to delete business");
+  }
+};
+
+/**
+ * Hook that allows an admin to delete any business.
+ * 
+ * @param businessId The ID of the business to delete
+ * @returns {Promise<object>} The deleted business object or an error
+ */
+export const useDeleteBusinessAsAdmin = async (businessId: string) => {
+  try {
+    return await client.models.Business.delete({
+      id: businessId
+    });
+  } catch (error) {
+    console.error("Error deleting business as admin:", error);
+    throw new Error("Failed to delete business as admin");
+  }
+};
 
