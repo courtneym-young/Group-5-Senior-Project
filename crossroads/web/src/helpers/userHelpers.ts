@@ -31,7 +31,6 @@ export const useFetchUsersList = (excludeCurrentUser = true) => {
               }
               
               const result = await client.models.User.list();
-              console.log(result)
               
               // Filter out current user if requested
               if (excludeCurrentUser && currentUserSub) {

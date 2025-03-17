@@ -7,6 +7,10 @@ import {
   BusinessStatusTypes,
 } from "../../types/business-types";
 import { APP_ROUTES } from "../../config/UrlConfig";
+import {
+  getTextColor,
+  getBusinessCategoryColor,
+} from "../../config/StyleConfig";
 
 const BusinessTable: React.FC = () => {
   const { businesses: allBusinesses } = useFetchBusinessListEx();
@@ -288,16 +292,35 @@ const BusinessTable: React.FC = () => {
                         {formatDate(business.updatedAt ?? "")}
                       </td>
                       <td className="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white">
-                        <a href={`${APP_ROUTES.ADMIN.BUSINESSES}/${business.id}`}>{business.id}</a>
+                        <a
+                          href={`${APP_ROUTES.ADMIN.BUSINESSES}/${business.id}`}
+                        >
+                          {business.id}
+                        </a>
                       </td>
                       <td className="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                        <a href={`${APP_ROUTES.ADMIN.USERS}/${business.user?.id}`}>
+                        <a
+                          href={`${APP_ROUTES.ADMIN.USERS}/${business.user?.id}`}
+                        >
                           {business.user?.firstName || "N/A"}{" "}
                           {business.user?.lastName || "N/A"}
                         </a>
                       </td>
-                      <td className="inline-flex items-center p-4 space-x-2 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
-                        <span>{business.category?.join(", ")}</span>
+                      <td className="inline-flex items-center p-4 space-x-2 text-sm font-normal whitespace-nowrap">
+                        {business.category?.map((cat) => (
+                          <span
+                            key={cat}
+                            style={{
+                              backgroundColor: getBusinessCategoryColor(cat),
+                              color: getTextColor(
+                                getBusinessCategoryColor(cat)
+                              ), // Ensures good contrast
+                            }}
+                            className="border text-xs font-medium mr-2 px-2.5 py-0.5 rounded-md"
+                          >
+                            {cat}
+                          </span>
+                        ))}
                       </td>
                       <td className="p-4 whitespace-nowrap">
                         <span

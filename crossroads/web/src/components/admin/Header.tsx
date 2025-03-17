@@ -6,8 +6,9 @@ import { useFetchUserAttributes } from '../../helpers/userHelpers';
 import { APP_ROUTES } from '../../config/UrlConfig';
 
 const Navbar: React.FC = () => {
-  const { signOut } = useAuthenticator((context) => [context.user]);
+  const { user, signOut } = useAuthenticator((context) => [context.user]);
   const { userAttributes } = useFetchUserAttributes();
+  console.log(user)
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
