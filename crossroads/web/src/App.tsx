@@ -123,6 +123,17 @@ function App() {
               }
             />
             <Route
+            path={`${APP_ROUTES.ADMIN.BUSINESSES}/:businessId`}
+              element={
+                <ProtectedRoute
+                  allowedRoles={[GroupRoles.ADMIN]}
+                  userGroups={userGroups}
+                >
+                  <BusinessesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path={APP_ROUTES.ADMIN.PROFILE}
               element={
                 <ProtectedRoute

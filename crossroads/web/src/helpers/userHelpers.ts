@@ -145,17 +145,17 @@ export const updateUser = async (
 ) => {
   try {
     const currentUser = await client.models.User.get({ id: userId });
-
+    
     if (!currentUser.data) {
       throw new Error("User not found");
     }
-
+    
+    // Only update the fields that are in userData
     const result = await client.models.User.update({
-      ...currentUser.data,
-      ...userData,
       id: userId,
+      ...userData,
     });
-
+    
     return result.data;
   } catch (error) {
     console.error("Error updating user:", error);

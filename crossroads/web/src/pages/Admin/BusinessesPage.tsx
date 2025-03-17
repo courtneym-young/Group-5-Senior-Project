@@ -4,9 +4,11 @@ import {
   useFetchBusinessListEx, 
   updateBusinessAsAdmin,
   deleteBusinessAsAdmin,
+  createBusinessAsAdmin
 } from "../../helpers/businessHelpers";
+import { useFetchUsersList } from "../../helpers/userHelpers";
 import { formatDate } from "../../helpers/timeHelpers";
-import { BusinessStatusTypes, BusinessStatusType, ResolvedBusinessEx } from "../../types/business-types";
+import { BusinessStatusTypes, BusinessStatusType, ResolvedBusinessEx, emptyBusiness } from "../../types/business-types";
 import { APP_ROUTES } from "../../config/UrlConfig";
 
 interface BusinessesPageProps {}
@@ -22,6 +24,9 @@ const BusinessesPage: FunctionComponent<BusinessesPageProps> = () => {
   const [editedBusiness, setEditedBusiness] = useState<ResolvedBusinessEx | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isAddingBusiness, setIsAddingBusiness] = useState(false);
+  const [newBusiness, setNewBusiness] = useState(emptyBusiness);
+  const { users, loading: loadingUsers } = useFetchUsersList();
 
   // Set the current business when businesses are loaded or selection changes
   useEffect(() => {
@@ -84,6 +89,62 @@ const BusinessesPage: FunctionComponent<BusinessesPageProps> = () => {
           [field]: value,
         });
       }
+    }
+  };
+
+  const handleCreateBusiness = async () => {
+    try {
+      if (!newBusiness.userId) {
+        setErrorMessage("Please select a user");
+        return;
+      }
+      
+      if (!newBusiness.name) {
+        setErrorMessage("Business name is required");
+        return;
+      }
+      console.log("Awaiting creating the businesss")
+      await createBusinessAsAdmin({
+        name: newBusiness.name,
+        userId: newBusiness.userId,
+        description: newBusiness.description,
+        category: newBusiness.category,
+        location: newBusiness.location,
+        phone: newBusiness.phone,
+        website: newBusiness.website,
+        email: newBusiness.email,
+        hours: newBusiness.hours,
+        profilePhoto: newBusiness.profilePhoto,
+        isMinorityOwned: newBusiness.isMinorityOwned,
+        status: newBusiness.status as BusinessStatusType,
+      });
+      
+      setSuccessMessage("Business created successfully");
+      setTimeout(() => setSuccessMessage(""), 3000);
+      setIsAddingBusiness(false);
+      setNewBusiness(emptyBusiness);
+      // Ideally we'd refresh the business list here
+    } catch (err) {
+      setErrorMessage(`Failed to create business: ${err instanceof Error ? err.message : String(err)}`);
+      setTimeout(() => setErrorMessage(""), 5000);
+    }
+  };
+
+  const handleNewBusinessInputChange = (field: string, value: unknown) => {
+    if (field.startsWith("location.")) {
+      const locationField = field.split(".")[1];
+      setNewBusiness({
+        ...newBusiness,
+        location: {
+          ...newBusiness.location,
+          [locationField]: value
+        }
+      });
+    } else {
+      setNewBusiness({
+        ...newBusiness,
+        [field]: value,
+      });
     }
   };
 
@@ -192,11 +253,22 @@ const BusinessesPage: FunctionComponent<BusinessesPageProps> = () => {
           {errorMessage}
         </div>
       )}
+
+      
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left column: Business list with filters */}
         <div className="border rounded-lg p-4 overflow-hidden">
-          <h2 className="text-xl font-semibold mb-4">Business List</h2>
+          <div className="flex justify-between items-center mb-6">
+           <h2 className="text-xl font-semibold mb-4">Business List</h2>
+           <button
+    onClick={() => setIsAddingBusiness(true)}
+    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+  >
+    Add Business
+  </button>
+          </div>
+          
           
           <div className="mb-4">
             <input
@@ -548,6 +620,188 @@ const BusinessesPage: FunctionComponent<BusinessesPageProps> = () => {
           )}
         </div>
       </div>
+
+      {/* Add Business Modal */}
+{isAddingBusiness && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-screen overflow-y-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Add New Business</h2>
+        <button
+          onClick={() => setIsAddingBusiness(false)}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          ✕
+        </button>
+      </div>
+      
+      <div className="space-y-4">
+      <div>
+  <label className="block text-sm font-medium text-gray-700">User*</label>
+  <select
+    className="mt-1 block w-full p-2 border rounded"
+    value={newBusiness.userId}
+    onChange={(e) => handleNewBusinessInputChange("userId", e.target.value)}
+    required
+  >
+    <option value="">Select a user</option>
+    {loadingUsers ? (
+      <option disabled>Loading users...</option>
+    ) : (
+      users.map((user) => (
+        <option key={user.id} value={user.id}>
+          {user.firstName} {user.lastName} ({user.username || user.profileOwner})
+        </option>
+      ))
+    )}
+  </select>
+</div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Business Name*</label>
+          <input
+            type="text"
+            className="mt-1 block w-full p-2 border rounded"
+            value={newBusiness.name}
+            onChange={(e) => handleNewBusinessInputChange("name", e.target.value)}
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <textarea
+            className="mt-1 block w-full p-2 border rounded"
+            rows={3}
+            value={newBusiness.description}
+            onChange={(e) => handleNewBusinessInputChange("description", e.target.value)}
+          ></textarea>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Phone</label>
+            <input
+              type="text"
+              className="mt-1 block w-full p-2 border rounded"
+              value={newBusiness.phone}
+              onChange={(e) => handleNewBusinessInputChange("phone", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="text"
+              className="mt-1 block w-full p-2 border rounded"
+              value={newBusiness.email}
+              onChange={(e) => handleNewBusinessInputChange("email", e.target.value)}
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Website</label>
+          <input
+            type="text"
+            className="mt-1 block w-full p-2 border rounded"
+            value={newBusiness.website}
+            onChange={(e) => handleNewBusinessInputChange("website", e.target.value)}
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Street Address</label>
+          <input
+            type="text"
+            className="mt-1 block w-full p-2 border rounded"
+            value={newBusiness.location.streetAddress}
+            onChange={(e) => handleNewBusinessInputChange("location.streetAddress", e.target.value)}
+          />
+        </div>
+        
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">City</label>
+            <input
+              type="text"
+              className="mt-1 block w-full p-2 border rounded"
+              value={newBusiness.location.city}
+              onChange={(e) => handleNewBusinessInputChange("location.city", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">State</label>
+            <input
+              type="text"
+              className="mt-1 block w-full p-2 border rounded"
+              value={newBusiness.location.state}
+              onChange={(e) => handleNewBusinessInputChange("location.state", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">ZIP</label>
+            <input
+              type="text"
+              className="mt-1 block w-full p-2 border rounded"
+              value={newBusiness.location.zip}
+              onChange={(e) => handleNewBusinessInputChange("location.zip", e.target.value)}
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Hours</label>
+          <input
+            type="text"
+            className="mt-1 block w-full p-2 border rounded"
+            value={newBusiness.hours}
+            onChange={(e) => handleNewBusinessInputChange("hours", e.target.value)}
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Status</label>
+          <select
+            className="mt-1 block w-full p-2 border rounded"
+            value={newBusiness.status}
+            onChange={(e) => handleNewBusinessInputChange("status", e.target.value)}
+          >
+            <option value={BusinessStatusTypes.PENDING}>Pending Review</option>
+            <option value={BusinessStatusTypes.VERIFIED}>Verified</option>
+            <option value={BusinessStatusTypes.FLAGGED}>Flagged</option>
+          </select>
+        </div>
+        
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            className="h-4 w-4 text-blue-600 border rounded"
+            checked={newBusiness.isMinorityOwned}
+            onChange={(e) => handleNewBusinessInputChange("isMinorityOwned", e.target.checked)}
+          />
+          <label className="ml-2 text-sm font-medium text-gray-700">Minority Owned Business</label>
+        </div>
+        
+        <div className="pt-4 flex justify-end space-x-2">
+          <button
+            onClick={() => setIsAddingBusiness(false)}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleCreateBusiness}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+          >
+            Create Business
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 };

@@ -73,3 +73,24 @@ export type CreateBusinessAsAdminFormData = CreateBusinessBase & {
   userId: string; // Admin must specify the user ID
   status: BusinessStatusType
 };
+
+export const emptyBusiness = {
+  name: "",
+  userId: "",
+  description: "",
+  category: [],
+  location: {
+    streetAddress: "",
+    secondaryAddress: "",
+    city: "",
+    state: "",
+    zip: ""
+  },
+  phone: "",
+  website: "",
+  email: "",
+  hours: "",
+  profilePhoto: "",
+  isMinorityOwned: false,
+  status: BusinessStatusTypes.PENDING
+};
