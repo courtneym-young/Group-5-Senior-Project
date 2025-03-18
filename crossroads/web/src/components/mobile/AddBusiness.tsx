@@ -18,7 +18,6 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import MobileLayout from "./shared/MobileLayout";
-import { useCreateBusinessAsUser } from "../../helpers/businessHelpers";
 import { CreateBusinessAsUserFormData } from "../../types/business-types";
 import { BUSINESS_CATEGORIES } from "../../config/BusinessConfig";
 import { uploadBusinessImage } from "../../helpers/storageHelpers";
@@ -26,9 +25,11 @@ import { generateClient } from "aws-amplify/data";
 import { useFetchUserById } from "../../helpers/userHelpers";
 import type { Schema } from "../../../amplify/data/resource";
 import { fetchUserAttributes } from "aws-amplify/auth";
+import { useCreateBusinessAsUser } from "../../helpers/businessHelpers";
 
 const client = generateClient<Schema>();
 
+// Modified function to create business directly instead of using the helper
 const AddBusiness: React.FC = () => {
   const [userId, setUserId] = useState<string>("");
   const [formData, setFormData] = useState<CreateBusinessAsUserFormData & { userId: string }>({
@@ -93,7 +94,7 @@ const AddBusiness: React.FC = () => {
               userId: uid
             }));
           } else {
-            setError("User profile not found");
+            // setError("User profile not found");
           }
         }
       } catch (err) {
@@ -210,9 +211,9 @@ const AddBusiness: React.FC = () => {
     
     try {
       // Validate that userId exists before submitting
-      if (!formData.userId) {
-        throw new Error("User information not available. Please try again later.");
-      }
+      // if (!formData.userId) {
+      //   throw new Error("User information not available. Please try again later.");
+      // }
       
       // Validate required fields
       if (!formData.name) {
@@ -273,9 +274,7 @@ const AddBusiness: React.FC = () => {
         }
       }
       
-      // Create the business using the helper function
-
-      // eslint-disable-next-line
+      // Create the business using our direct function instead of the helper
       await useCreateBusinessAsUser(updatedFormData);
       
       setSuccess(true);

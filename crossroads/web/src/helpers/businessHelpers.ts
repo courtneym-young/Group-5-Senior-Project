@@ -262,16 +262,24 @@ export const useCreateBusinessAsUser = async (
 ) => {
   // Fetch the currently authenticated user
   const userAttributes = await fetchUserAttributes();
-  const userId = userAttributes?.sub; // The user's unique ID
+  const userSub = userAttributes?.sub?.trim() ?? ""; // The user's unique ID
 
-  if (!userId) {
+    // Find user with matching profileOwner
+
+    const usersList = await client.models.User.list();
+    const matchingUsers = usersList.data.filter(user => user.profileOwner === userSub);
+    console.log("Filtered Users:", matchingUsers);
+
+  if (!userSub) {
     throw new Error("User not authenticated");
   }
+
+  const userId = `${matchingUsers[0].profileOwner}`
 
   // Create the business in the database
   const task = await client.models.Business.create({
     name: businessData.name,
-    userId, // Link business to the authenticated user
+    userId,
     description: businessData.description || "",
     category: businessData.category || [],
     location: businessData.location,
