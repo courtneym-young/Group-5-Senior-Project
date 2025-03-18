@@ -47,6 +47,8 @@ const schema = a
       .authorization((allow) => [
         allow.owner().to(["create", "delete"]), // Users can manage their own subscriptions
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
+        allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
+        allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
       ]),
 
     BusinessOwnerPost: a
@@ -63,6 +65,8 @@ const schema = a
       .authorization((allow) => [
         allow.owner().to(["create", "update", "delete"]), // Users can manage their own posts
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
+        allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
+        allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
       ]),
 
     
@@ -98,8 +102,8 @@ const schema = a
       .authorization((allow) => [
         allow.owner().to(["create", "update", "delete"]), // Business owners can manage their own businesses
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
-        allow.groups(["OWNER"]).to(["create", "read", "update", "delete"]), // Owner has full access
-        allow.groups(["CUSTOMER"]).to(["create", "read", "update", "delete"]), // Customer has full access
+        allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
+        allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
       ]),
     Review: a
       .model({
@@ -118,6 +122,8 @@ const schema = a
       .authorization((allow) => [
         allow.owner().to(["create", "update", "delete"]), // Users can manage their own reviews
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
+        allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
+        allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
       ]),
   })
   .authorization((allow) => [allow.resource(postConfirmation)]);
