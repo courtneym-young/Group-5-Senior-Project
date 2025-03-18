@@ -99,6 +99,7 @@ const schema = a
         allow.owner().to(["create", "update", "delete"]), // Business owners can manage their own businesses
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
         allow.groups(["OWNER"]).to(["create", "read", "update", "delete"]), // Owner has full access
+        allow.groups(["CUSTOMER"]).to(["create", "read", "update", "delete"]), // Customer has full access
       ]),
     Review: a
       .model({

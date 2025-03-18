@@ -1,38 +1,11 @@
-import React, { useState } from "react";
-import { Box, Typography, TextField, InputAdornment } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Typography, TextField, InputAdornment, CircularProgress } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import MobileLayout from "./shared/MobileLayout";
 import TuneIcon from "@mui/icons-material/Tune";
 import ImageIcon from "@mui/icons-material/Image";
-import {IconButton} from "@mui/material";
-
-// Simulated Business Data
-const businesses = [
-  {
-    id: 1,
-    name: "Glamour Hair Salon",
-    description: "Premium hair styling and treatments.",
-    keywords: ["hair", "salon", "styling", "beauty"],
-  },
-  {
-    id: 2,
-    name: "Fresh Cuts Barbershop",
-    description: "Classic and modern cuts for all ages.",
-    keywords: ["barber", "barbershop", "cuts", "hair"],
-  },
-  {
-    id: 3,
-    name: "Urban Trend Clothing",
-    description: "Trendy streetwear and fashion.",
-    keywords: ["clothing", "fashion", "clothes", "apparel"],
-  },
-  {
-    id: 4,
-    name: "Glow Esthetics",
-    description: "Professional skincare and facials.",
-    keywords: ["esthetician", "skincare", "facials", "skin"],
-  },
-];
+import { IconButton } from "@mui/material";
+import { useFetchBusinessListEx } from "../../helpers/businessHelpers";
 
 const Explore: React.FC = () => {
   const icon = (
@@ -41,14 +14,54 @@ const Explore: React.FC = () => {
     </IconButton>
   );
   const [searchTerm, setSearchTerm] = useState("");
+  const { businesses, loading, error } = useFetchBusinessListEx();
 
-  // Function to filter businesses based on title, description, or keywords
-  const filteredBusinesses = businesses.filter((business) =>
-    [business.name, business.description, ...business.keywords]
+  // Debug: Log the raw businesses data
+  useEffect(() => {
+    console.log("Raw businesses data:", businesses);
+    console.log("Loading state:", loading);
+    console.log("Error state:", error);
+  }, [businesses, loading, error]);
+
+  // Function to filter businesses based on title, description, or categories
+  const filteredBusinesses = businesses.filter((business) => {
+    // If searchTerm is empty, return all businesses
+    if (!searchTerm.trim()) return true;
+    
+    // Check if business has required properties
+    const searchableValues = [
+      business?.name || '',
+      business?.description || '',
+      ...(Array.isArray(business?.category) ? business.category : [])
+    ];
+    
+    // Create a search string from name, description, and categories
+    const searchString = searchableValues
+      .filter(Boolean)  // Remove any undefined or null values
       .join(" ")
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+      .toLowerCase();
+    
+    const result = searchString.includes(searchTerm.toLowerCase());
+    console.log(`Business ${business?.name} matches search '${searchTerm}':`, result);
+    return result;
+  });
+
+  // Debug: Log filtered businesses result
+  useEffect(() => {
+    console.log("Filtered businesses:", filteredBusinesses);
+  }, [filteredBusinesses]);
+
+  if (error) {
+    return (
+      <MobileLayout title="Businesses" rightIcon={icon}>
+        <Box sx={{ padding: "20px", textAlign: "center" }}>
+          <Typography color="error">
+            Error loading businesses: {error}
+          </Typography>
+        </Box>
+      </MobileLayout>
+    );
+  }
 
   return (
     <MobileLayout title="Businesses" rightIcon={icon}>
@@ -71,12 +84,23 @@ const Explore: React.FC = () => {
         />
       </Box>
 
+      {/* Debug Info */}
+      <Box sx={{ padding: "0 20px", marginBottom: "10px" }}>
+        <Typography variant="caption" color="text.secondary">
+          Total businesses: {businesses.length}, Filtered: {filteredBusinesses.length}, Loading: {loading.toString()}
+        </Typography>
+      </Box>
+
       {/* Scrollable Business List */}
       <Box sx={{ flex: 1, overflowY: "auto" }}>
-        {filteredBusinesses.length > 0 ? (
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", padding: "20px" }}>
+            <CircularProgress />
+          </Box>
+        ) : filteredBusinesses.length > 0 ? (
           filteredBusinesses.map((business) => (
             <Box key={business.id} sx={{ padding: "10px" }}>
-              {/* Grey Box with Image Icon */}
+              {/* Grey Box with Image or Image Icon */}
               <Box
                 sx={{
                   width: "100%",
@@ -86,23 +110,38 @@ const Explore: React.FC = () => {
                   justifyContent: "center",
                   alignItems: "center",
                   borderRadius: "12px",
+                  backgroundImage: business.profilePhoto ? `url(${business.profilePhoto})` : "none",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
                 }}
               >
-                <ImageIcon fontSize="large" sx={{ color: "#9e9e9e" }} />
+                {!business.profilePhoto && (
+                  <ImageIcon fontSize="large" sx={{ color: "#9e9e9e" }} />
+                )}
               </Box>
               {/* Business Details */}
               <Box sx={{ padding: "10px" }}>
                 <Typography fontWeight="bold">{business.name}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {business.description}
+                  {business.description || "No description available"}
                 </Typography>
+                {business.category && business.category.length > 0 && (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                    {business.category.join(", ")}
+                  </Typography>
+                )}
               </Box>
             </Box>
           ))
         ) : (
-          <Typography align="center" sx={{ mt: 2, color: "#9e9e9e" }}>
-            No results found.
-          </Typography>
+          <Box sx={{ padding: "20px", textAlign: "center" }}>
+            <Typography align="center" sx={{ mt: 2, color: "#9e9e9e" }}>
+              No results found.
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+              Try creating some businesses or check if there are any database connectivity issues.
+            </Typography>
+          </Box>
         )}
       </Box>
     </MobileLayout>
