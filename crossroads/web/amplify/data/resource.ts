@@ -33,6 +33,8 @@ const schema = a
         allow.ownerDefinedIn("profileOwner"),
         allow.owner().to(["create", "read", "update"]),
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]),
+        allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
+        allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
       ]),
 
     // Users can subscribe to specific businesses.

@@ -13,15 +13,19 @@ import {
   Checkbox,
   FormGroup,
   FormControlLabel,
-  Chip
+  Chip,
+  Switch,
+  Divider
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import MobileLayout from "./shared/MobileLayout";
 import TuneIcon from "@mui/icons-material/Tune";
 import ImageIcon from "@mui/icons-material/Image";
+import VerifiedIcon from "@mui/icons-material/Verified";
 import { IconButton } from "@mui/material";
 import { useFetchBusinessListEx } from "../../helpers/businessHelpers";
 import { getFileUrl } from "../../helpers/storageHelpers";
+// import { BUSINESS_STATUS_COLOR_MAPPING } from "../../config/StyleConfig";
 
 // Define a type for business with image URL
 interface BusinessWithImage extends Record<string, unknown> {
@@ -31,6 +35,7 @@ interface BusinessWithImage extends Record<string, unknown> {
   category?: string[];
   profilePhoto?: string;
   imageUrl?: string;
+  status?: string;
 }
 
 const Explore: React.FC = () => {
@@ -39,6 +44,7 @@ const Explore: React.FC = () => {
   const [allCategories, setAllCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(true); // Default to showing only verified businesses
   
   // Data fetching and processing state
   const { businesses: rawBusinesses, loading, error } = useFetchBusinessListEx();
@@ -64,6 +70,7 @@ const Explore: React.FC = () => {
   // Clear all filters
   const handleClearFilters = () => {
     setSelectedCategories([]);
+    setShowVerifiedOnly(true); // Reset to default (verified only)
     setFilterDialogOpen(false);
   };
 
@@ -81,6 +88,16 @@ const Explore: React.FC = () => {
   // Remove a single category filter
   const handleRemoveCategory = (category: string) => {
     setSelectedCategories(prev => prev.filter(c => c !== category));
+  };
+
+  // Toggle verified only filter
+  const handleVerifiedOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setShowVerifiedOnly(event.target.checked);
+  };
+
+  // Remove verified only filter
+  const handleRemoveVerifiedOnly = () => {
+    setShowVerifiedOnly(false);
   };
 
   // Extract all unique categories from businesses
@@ -141,8 +158,13 @@ const Explore: React.FC = () => {
   }, [rawBusinesses]);
 
 
-  // Function to filter businesses based on search term and selected categories
+  // Function to filter businesses based on search term, verified status, and selected categories
   const filteredBusinesses = businesses.filter((business) => {
+    // Verified filter
+    if (showVerifiedOnly && business.status !== 'VERIFIED') {
+      return false;
+    }
+    
     // Category filter
     if (selectedCategories.length > 0) {
       const businessCategories = business?.category || [];
@@ -172,12 +194,15 @@ const Explore: React.FC = () => {
     return searchString.includes(searchTerm.toLowerCase());
   });
 
+  // Calculate the number of active filters
+  const activeFilterCount = selectedCategories.length + (showVerifiedOnly ? 1 : 0);
+
   // Create a filter icon with a badge indicator when filters are active
   const filterIcon = (
     <IconButton onClick={handleFilterClick}>
       <Box position="relative">
         <TuneIcon fontSize="medium" />
-        {selectedCategories.length > 0 && (
+        {activeFilterCount > 0 && (
           <Box
             position="absolute"
             top={-4}
@@ -191,7 +216,7 @@ const Explore: React.FC = () => {
             justifyContent="center"
           >
             <Typography variant="caption" color="white" fontSize={10}>
-              {selectedCategories.length}
+              {activeFilterCount}
             </Typography>
           </Box>
         )}
@@ -233,27 +258,50 @@ const Explore: React.FC = () => {
       </Box>
       
       {/* Active Filters */}
-      {selectedCategories.length > 0 && (
-        <Box sx={{ padding: "0 20px", marginBottom: "10px", display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {selectedCategories.map(category => (
-            <Chip 
-              key={category} 
-              label={category} 
-              size="small" 
-              onDelete={() => handleRemoveCategory(category)}
-            />
-          ))}
-          {selectedCategories.length > 1 && (
-            <Chip 
-              label="Clear all" 
-              size="small"
-              color="primary"
-              variant="outlined"
-              onClick={handleClearFilters}
-            />
-          )}
-        </Box>
-      )}
+      <Box sx={{ padding: "0 20px", marginBottom: "10px", display: "flex", flexWrap: "wrap", gap: 1 }}>
+        {/* Verified filter chip */}
+        {showVerifiedOnly && (
+          <Chip 
+            icon={<VerifiedIcon sx={{ color: "#1976d2" }} />}
+            label="Verified Only" 
+            size="small"
+            color="primary"
+            sx={{ 
+              fontWeight: "medium", 
+              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              '& .MuiChip-label': { paddingLeft: 0 }
+            }}
+            onDelete={handleRemoveVerifiedOnly}
+          />
+        )}
+        
+        {/* Category filter chips */}
+        {selectedCategories.map(category => (
+          <Chip 
+            key={category} 
+            label={category} 
+            size="small"
+            sx={{ 
+              fontWeight: "medium", 
+              backgroundColor: "#e3f2fd", 
+              color: "#1976d2",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.1)" 
+            }}
+            onDelete={() => handleRemoveCategory(category)}
+          />
+        ))}
+        
+        {/* Clear all filters button */}
+        {activeFilterCount > 1 && (
+          <Chip 
+            label="Clear all" 
+            size="small"
+            color="primary"
+            variant="outlined"
+            onClick={handleClearFilters}
+          />
+        )}
+      </Box>
 
       {/* Scrollable Business List */}
       <Box sx={{ flex: 1, overflowY: "auto" }}>
@@ -277,22 +325,63 @@ const Explore: React.FC = () => {
                   backgroundImage: business.imageUrl ? `url(${business.imageUrl})` : "none",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
+                  position: "relative", // For positioning the verified badge
                 }}
               >
                 {!business.imageUrl && (
                   <ImageIcon fontSize="large" sx={{ color: "#9e9e9e" }} />
                 )}
+                
+                {/* Verified Badge */}
+                {business.status === 'VERIFIED' && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      backgroundColor: "rgba(255, 255, 255, 0.9)",
+                      borderRadius: "50%",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    <VerifiedIcon sx={{ color: "#1976d2" }} />
+                  </Box>
+                )}
               </Box>
+              
               {/* Business Details */}
               <Box sx={{ padding: "10px" }}>
-                <Typography fontWeight="bold">{business.name}</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography fontWeight="bold">{business.name}</Typography>
+                  {business.status === 'VERIFIED' && (
+                    <VerifiedIcon fontSize="small" sx={{ color: "#1976d2" }} />
+                  )}
+                </Box>
                 <Typography variant="body2" color="text.secondary">
                   {business.description || "No description available"}
                 </Typography>
+                
+                {/* Category Tags */}
                 {business.category && business.category.length > 0 && (
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-                    {business.category.join(", ")}
-                  </Typography>
+                  <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {business.category.map((category, index) => (
+                      <Chip 
+                        key={index}
+                        label={category}
+                        size="small"
+                        sx={{ 
+                          fontSize: "0.7rem", 
+                          height: "20px",
+                          backgroundColor: "#f0f0f0",
+                          fontWeight: "medium"
+                        }}
+                      />
+                    ))}
+                  </Box>
                 )}
               </Box>
             </Box>
@@ -312,9 +401,33 @@ const Explore: React.FC = () => {
       {/* Category Filter Dialog */}
       <Dialog open={filterDialogOpen} onClose={handleCloseFilter} fullWidth maxWidth="xs">
         <DialogTitle>
-          Filter by Category
+          Filter Businesses
         </DialogTitle>
         <DialogContent dividers>
+          {/* Verified Filter Toggle */}
+          <Box sx={{ mb: 2 }}>
+            <Typography fontWeight="medium" sx={{ mb: 1 }}>Business Status</Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showVerifiedOnly}
+                  onChange={handleVerifiedOnlyChange}
+                  color="primary"
+                />
+              }
+              label={
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Typography>Show verified businesses only</Typography>
+                  <VerifiedIcon sx={{ ml: 1, color: "#1976d2", fontSize: "1rem" }} />
+                </Box>
+              }
+            />
+          </Box>
+          
+          <Divider sx={{ my: 2 }} />
+          
+          {/* Category Filters */}
+          <Typography fontWeight="medium" sx={{ mb: 1 }}>Categories</Typography>
           {allCategories.length === 0 ? (
             <Typography>No categories available</Typography>
           ) : (
