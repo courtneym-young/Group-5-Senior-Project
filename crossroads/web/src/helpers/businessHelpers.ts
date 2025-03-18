@@ -260,34 +260,34 @@ export const useFetchBusinessListEx = () => {
 export const useCreateBusinessAsUser = async (
   businessData: CreateBusinessAsUserFormData
 ) => {
-  try {
-    // Fetch the currently authenticated user
-    const userAttributes = await fetchUserAttributes();
-    const userId = userAttributes?.sub; // The user's unique ID
+  // Fetch the currently authenticated user
+  const userAttributes = await fetchUserAttributes();
+  const userId = userAttributes?.sub; // The user's unique ID
 
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
+  if (!userId) {
+    throw new Error("User not authenticated");
+  }
 
-    // Create the business in the database
-    return await client.models.Business.create({
-      name: businessData.name,
-      userId, // Link business to the authenticated user
-      description: businessData.description || "",
-      category: businessData.category || [],
-      location: businessData.location,
-      phone: businessData.phone || "",
-      website: businessData.website || "",
-      email: businessData.email || "",
-      hours: businessData.hours || "",
-      profilePhoto: businessData.profilePhoto || "",
-      isMinorityOwned: businessData.isMinorityOwned || false,
-      status: BusinessStatusTypes.PENDING, // Default new businesses to pending review
-      averageRating: 0,
-    });
-  } catch (error) {
-    console.error("Error creating business:", error);
-    throw new Error("Failed to create business");
+  // Create the business in the database
+  const task = await client.models.Business.create({
+    name: businessData.name,
+    userId, // Link business to the authenticated user
+    description: businessData.description || "",
+    category: businessData.category || [],
+    location: businessData.location,
+    phone: businessData.phone || "",
+    website: businessData.website || "",
+    email: businessData.email || "",
+    hours: businessData.hours || "",
+    profilePhoto: businessData.profilePhoto || "",
+    isMinorityOwned: businessData.isMinorityOwned || false,
+    status: BusinessStatusTypes.PENDING, // Default new businesses to pending review
+    averageRating: 0,
+  });
+
+  if ((task.errors?.length ?? 0) > 0) {
+    console.error(task.errors?.[0].message || "An unknown error occurred");
+    throw new Error(task.errors?.[0].message || "An unknown error occurred");
   }
 };
 
