@@ -71,6 +71,25 @@ const schema = a
         allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
       ]),
 
+      // A business can have many products.
+      Product: a
+      .model({
+        businessId: a.string().required(), // References the business the post is for
+        productName: a.string().required(),
+        productDescription: a.string().array(),
+        productImage: a.url().required(),
+        createdAt: a.datetime(),
+        updatedAt: a.datetime(),
+        price: a.float().required(), // Relate to user who created it
+        business: a.belongsTo("Business", "businessId") // Relate to the business
+      })
+      .authorization((allow) => [
+        allow.owner().to(["create", "update", "delete"]), // Businesses can manage their own products
+        allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
+        allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
+        allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
+      ]),
+
     
     // Business data 
     Business: a
@@ -98,6 +117,7 @@ const schema = a
         updatedAt: a.datetime(), // UpdatedAt timestamp
         user: a.belongsTo("User", "userId"), // Connected user that belongs
         businessOwnerPosts: a.hasMany("BusinessOwnerPost", "businessId"), // Business can have many posts
+        businessProducts: a.hasMany("Product", "businessId"), // Business can have many products
         reviews: a.hasMany("Review", "businessId"), // Business can have many reviews
         subscribers: a.hasMany("UserBusinessSubscription", "businessId") // Business can have many subscribers
       })
