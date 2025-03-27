@@ -30,6 +30,16 @@ export type BusinessLocation = {
   zip?: string;
 };
 
+export type ResolvedProduct = {
+  businessId: string;
+  productName: string;
+  productDescription: string[];
+  productImage: string;
+  createdAt?: string;
+  updatedAt?: string;
+  price: number;
+};
+
 export type ResolvedBusiness = {
   id: string;
   name: string;
@@ -47,6 +57,7 @@ export type ResolvedBusiness = {
   averageRating?: number;
   createdAt?: string;
   updatedAt?: string;
+  businessProducts?: Product[];
 };
 
 export type ResolvedBusinessEx = ResolvedBusiness & {

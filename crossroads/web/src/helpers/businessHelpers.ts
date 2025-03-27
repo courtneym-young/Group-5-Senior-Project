@@ -7,6 +7,7 @@ import {
   BusinessStatusTypes,
   CreateBusinessAsUserFormData,
   CreateBusinessAsAdminFormData,
+  ResolvedProduct,
 } from "../types/business-types";
 import { fetchUserAttributes } from "aws-amplify/auth";
 
@@ -140,6 +141,7 @@ export const useFetchBusinessList = () => {
             "location.zip",
             "phone",
             "website",
+            "businessProducts.*",
             "email",
             "hours",
             "profilePhoto",
@@ -165,6 +167,51 @@ export const useFetchBusinessList = () => {
 
   return { businesses, loading, error };
 };
+
+
+/**
+ * Hook to fetch a list of products.
+ *
+ * @returns {Object} Object containing:
+ *   - products: Array of product objects
+ *   - loading: Boolean indicating if data is being fetched
+ *   - error: Error message if fetch failed, or null if successful
+ */
+  export const useFetchProductList = () => {
+    const [products, setProducts] = useState<ResolvedProduct[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+  
+    useEffect(() => {
+      const fetchProductList = async () => {
+        try {
+          const result = await client.models.Product.list({
+            selectionSet: [
+              "businessId",
+              "productName",
+              "productDescription",
+              "productImage",
+              "price",
+              "createdAt",
+              "updatedAt",
+            ],
+          });
+  
+          setProducts(result.data as ResolvedProduct[]);
+        } catch (error) {
+          console.error("Error fetching products:", error);
+          setError("Failed to fetch products");
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchProductList();
+    }, []);
+  
+    return { products, loading, error };
+  };
+
 
 /**
  * Extended version of useFetchBusinessList that also loads user information.
@@ -198,6 +245,7 @@ export const useFetchBusinessListEx = () => {
             "location.zip",
             "phone",
             "website",
+            "businessProducts.*",
             "email",
             "hours",
             "profilePhoto",
@@ -466,3 +514,65 @@ export const deleteBusinessAsAdmin = async (businessId: string) => {
     throw new Error("Failed to delete business as admin");
   }
 };
+
+/**
+ * Creates a new product for a specific business.
+
+export const useCreateProduct = async (productData: CreateProductFormData) => {
+  try {
+    // Create the product in the database
+    const task = await client.models.Product.create({
+      businessId: productData.businessId,
+      productName: productData.productName,
+      productDescription: productData.productDescription || "",
+      productImage: productData.productImage,
+      price: productData.price,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    if ((task.errors?.length ?? 0) > 0) {
+      throw new Error(task.errors?.[0].message || "An unknown error occurred");
+    }
+    return task;
+  } catch (error) {
+    console.error("Error creating product:", error);
+    throw new Error("Failed to create product");
+  }
+};
+
+
+ * Updates an existing product.
+ 
+export const useUpdateProduct = async (
+  productId: string,
+  updatedData: CreateProductFormData
+) => {
+  try {
+    return await client.models.Product.update({
+      id: productId,
+      productName: updatedData.productName,
+      productDescription: updatedData.productDescription,
+      productImage: updatedData.productImage,
+      price: updatedData.price,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error updating product:", error);
+    throw new Error("Failed to update product");
+  }
+};
+
+/**
+ * Deletes a product.
+
+export const useDeleteProduct = async (productId: string) => {
+  try {
+    return await client.models.Product.delete({ id: productId });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    throw new Error("Failed to delete product");
+  }
+};
+
+ **/
