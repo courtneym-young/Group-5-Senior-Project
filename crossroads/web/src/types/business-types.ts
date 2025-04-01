@@ -40,6 +40,17 @@ export type ResolvedProduct = {
   price: number;
 };
 
+
+export type Product = {
+  businessId: string;
+  productName: string;
+  productDescription: string[];
+  productImage: string;
+  createdAt?: string;
+  updatedAt?: string;
+  price: number;
+};
+
 export type ResolvedBusiness = {
   id: string;
   name: string;
