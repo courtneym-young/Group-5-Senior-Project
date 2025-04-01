@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import CrossroadsLogo from "../../assets/react.svg";
+import CrossroadsLogo from "../../assets/logo.png";
 import { AppNavigation } from "../../config/HeaderConfig";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { useFetchUserAttributes } from "../../helpers/userHelpers";
