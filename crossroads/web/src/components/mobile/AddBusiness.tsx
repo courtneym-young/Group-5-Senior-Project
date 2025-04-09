@@ -52,7 +52,6 @@ const AddBusiness: React.FC = () => {
     isMinorityOwned: false,
   });
 
-  const [keywords, setKeywords] = useState<string>("");
   const [tags, setTags] = useState<string[]>([]);
   const [actingOnBehalfOfOthers, setActingOnBehalfOfOthers] = useState<boolean>(false);
   const [receivePromotions, setReceivePromotions] = useState<boolean>(false);
@@ -67,6 +66,9 @@ const AddBusiness: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Reference for scrolling to the top
+  const topRef = useRef<HTMLDivElement>(null);
 
   // Fetch current user's ID using attributes
   useEffect(() => {
@@ -93,9 +95,7 @@ const AddBusiness: React.FC = () => {
               ...prev,
               userId: uid
             }));
-          } else {
-            // setError("User profile not found");
-          }
+          } 
         }
       } catch (err) {
         console.error("Error fetching user ID:", err);
@@ -107,6 +107,13 @@ const AddBusiness: React.FC = () => {
 
     getUserId();
   }, []);
+
+    // Scroll to top when error or success states change
+    useEffect(() => {
+      if ((typeof error === "string"  || success) && topRef.current) {
+        topRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, [error, success]);
 
   // Fetch user details after we have their ID
   const { loading: userLoading } = useFetchUserById(userId);
@@ -146,9 +153,6 @@ const AddBusiness: React.FC = () => {
     }
   };
 
-  const handleKeywordsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKeywords(e.target.value);
-  };
 
   const handleCategoryChange = (event: SelectChangeEvent<string[]>) => {
     const {
@@ -210,10 +214,6 @@ const AddBusiness: React.FC = () => {
     setError(null);
     
     try {
-      // Validate that userId exists before submitting
-      // if (!formData.userId) {
-      //   throw new Error("User information not available. Please try again later.");
-      // }
       
       // Validate required fields
       if (!formData.name) {
@@ -230,20 +230,6 @@ const AddBusiness: React.FC = () => {
       
       if (!formData.location.city || !formData.location.state) {
         throw new Error("City and state are required");
-      }
-      
-      // Add keywords to category if not already included
-      if (keywords) {
-        const keywordArray = keywords.split(",").map(k => k.trim());
-        const updatedCategory = [...(formData.category || [])];
-        
-        keywordArray.forEach(keyword => {
-          if (!updatedCategory.includes(keyword)) {
-            updatedCategory.push(keyword);
-          }
-        });
-        
-        formData.category = updatedCategory;
       }
       
       // Handle image upload if present
@@ -298,7 +284,6 @@ const AddBusiness: React.FC = () => {
         profilePhoto: "",
         isMinorityOwned: false,
       });
-      setKeywords("");
       setTags([]);
       setActingOnBehalfOfOthers(false);
       setReceivePromotions(false);
@@ -312,6 +297,8 @@ const AddBusiness: React.FC = () => {
 
   // Show loading state while fetching user data
   if (fetchingUser) {
+    <div ref={topRef} />
+    // {/* Reference point for scrolling to top */}
     return (
       <MobileLayout title="Add Business">
         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "300px" }}>
@@ -326,6 +313,7 @@ const AddBusiness: React.FC = () => {
 
   return (
     <MobileLayout title="Add Business">
+      <div ref={topRef} />
       <Box 
         component="form" 
         onSubmit={handleSubmit}
@@ -357,16 +345,6 @@ const AddBusiness: React.FC = () => {
           sx={{ marginBottom: "10px" }}
         />
         
-        <TextField
-          fullWidth
-          name="keywords"
-          label="Keywords (comma separated)"
-          placeholder="Keywords"
-          value={keywords}
-          onChange={handleKeywordsChange}
-          sx={{ marginBottom: "10px" }}
-          helperText="Additional keywords for the business"
-        />
         
         <FormControl fullWidth sx={{ marginBottom: "10px" }}>
           <InputLabel id="category-select-label">Business Categories</InputLabel>
