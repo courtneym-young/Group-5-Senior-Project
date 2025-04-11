@@ -25,6 +25,7 @@ import VerifiedIcon from "@mui/icons-material/Verified";
 import { IconButton } from "@mui/material";
 import { useFetchBusinessListEx } from "../../helpers/businessHelpers";
 import { getFileUrl } from "../../helpers/storageHelpers";
+import { useNavigate } from "react-router-dom";
 // import { BUSINESS_STATUS_COLOR_MAPPING } from "../../config/StyleConfig";
 
 // Define a type for business with image URL
@@ -39,6 +40,8 @@ interface BusinessWithImage extends Record<string, unknown> {
 }
 
 const Explore: React.FC = () => {
+  const navigate = useNavigate();
+
   // State for the filter dialog
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const [allCategories, setAllCategories] = useState<string[]>([]);
@@ -311,7 +314,7 @@ const Explore: React.FC = () => {
           </Box>
         ) : filteredBusinesses.length > 0 ? (
           filteredBusinesses.map((business) => (
-            <Box key={business.id} sx={{ padding: "10px" }}>
+            <Box key={business.id} sx={{ padding: "10px", cursor: "pointer" }}  onClick={() => navigate(`/business/${business.id}`)}>
               {/* Grey Box with Image or Image Icon */}
               <Box
                 sx={{
