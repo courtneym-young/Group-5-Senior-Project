@@ -24,15 +24,56 @@ import ShareIcon from "@mui/icons-material/Share";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../amplify/data/resource";
 import { getFileUrl } from "../../helpers/storageHelpers";
+import { 
+  BusinessStatusType, 
+  BusinessStatusTypes 
+} from "../../types/business-types";
+import { BUSINESS_STATUS_COLOR_MAPPING } from "../../config/StyleConfig";
+import { formatDate } from "../../helpers/timeHelpers";
 
 const dataClient = generateClient<Schema>();
+
+// Define the TypeScript interface for business based on the data structure used in BusinessTable
+interface BusinessLocation {
+  streetAddress?: string;
+  secondaryAddress?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+}
+
+interface BusinessUser {
+  id?: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+interface Business {
+  id: string;
+  name: string;
+  userId: string;
+  description?: string;
+  category?: string[];
+  location?: BusinessLocation;
+  phone?: string;
+  website?: string;
+  email?: string;
+  hours?: string;
+  profilePhoto?: string;
+  isMinorityOwned?: boolean;
+  status?: BusinessStatusType;
+  averageRating?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  user?: BusinessUser;
+}
 
 const BusinessDetails: React.FC = () => {
   const { businessId } = useParams<{ businessId: string }>();
   const navigate = useNavigate();
-
      
-  const [business, setBusiness] = useState<unknown>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -71,15 +112,15 @@ const BusinessDetails: React.FC = () => {
             "averageRating",
             "createdAt",
             "updatedAt",
+            "user.id",
             "user.username",
             "user.firstName",
             "user.lastName",
-            
           ],
         });
 
         if (result.data) {
-          setBusiness(result.data);
+          setBusiness(result.data as unknown as Business);
 
           // Load profile image if available
           if (result.data.profilePhoto) {
@@ -117,6 +158,8 @@ const BusinessDetails: React.FC = () => {
   }, [businessId]);
 
   const toggleSubscription = async () => {
+    if (!business) return;
+    
     try {
       if (isSubscribed) {
         // Find and delete subscription
@@ -143,6 +186,14 @@ const BusinessDetails: React.FC = () => {
     } catch (error) {
       console.error("Error toggling subscription:", error);
     }
+  };
+
+  const getStatusChipStyles = (status?: BusinessStatusType) => {
+    if (!status) return {};
+
+    return {
+      backgroundColor: BUSINESS_STATUS_COLOR_MAPPING[status] || BUSINESS_STATUS_COLOR_MAPPING.UNKNOWN
+    };
   };
 
   if (loading) {
@@ -248,7 +299,7 @@ const BusinessDetails: React.FC = () => {
           </Box>
 
           {/* Verified badge */}
-          {business.status === "VERIFIED" && (
+          {business.status === BusinessStatusTypes.VERIFIED && (
             <Box
               sx={{
                 position: "absolute",
@@ -270,7 +321,7 @@ const BusinessDetails: React.FC = () => {
 
         {/* Content */}
         <Box sx={{ padding: "20px", flex: 1, overflowY: "auto" }}>
-          {/* Title and Status */}
+          {/* Title, Status and Updated Date */}
           <Box
             sx={{
               display: "flex",
@@ -281,19 +332,29 @@ const BusinessDetails: React.FC = () => {
           >
             <Typography variant="h5" fontWeight="bold">
               {business.name}
-              {business.status === "VERIFIED" && (
+              {business.status === BusinessStatusTypes.VERIFIED && (
                 <VerifiedIcon
                   fontSize="small"
                   sx={{ color: "#1976d2", ml: 1, verticalAlign: "middle" }}
                 />
               )}
             </Typography>
+            
+            <Chip 
+              label={business.status || "UNKNOWN"}
+              size="small"
+              sx={getStatusChipStyles(business.status)}
+            />
           </Box>
+          
+          {/* Last updated date */}
+          {business.updatedAt && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Last updated: {formatDate(business.updatedAt)}
+            </Typography>
+          )}
 
           {/* Owner info */}
-          {
-            console.log(business)
-          }
           {business.user && (
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
               <Avatar sx={{ width: 24, height: 24, mr: 1, bgcolor: "#1976d2" }}>
@@ -302,7 +363,10 @@ const BusinessDetails: React.FC = () => {
                   "?"}
               </Avatar>
               <Typography variant="body2" color="text.secondary">
-                Owned by {business.user?.firstName || "NA"} {business.user?.lastName || "NA"}
+                Owned by{" "}
+                <a href={`/admin/users/${business.user.id}`}>
+                  {business.user?.firstName || "N/A"} {business.user?.lastName || "N/A"}
+                </a>
               </Typography>
             </Box>
           )}
