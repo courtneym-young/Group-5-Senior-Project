@@ -82,6 +82,7 @@ const schema = a
         createdAt: a.datetime(),
         updatedAt: a.datetime(),
         price: a.float().required(), // Relate to user who created it
+        user: a.belongsTo("User", "userId"),
         business: a.belongsTo("Business", "businessId") // Relate to the business
       })
       .authorization((allow) => [

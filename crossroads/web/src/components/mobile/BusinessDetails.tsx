@@ -80,7 +80,9 @@ const BusinessDetails: React.FC = () => {
         const userAttributes = await fetchUserAttributes();
         const userSub = userAttributes?.sub?.trim() ?? "";
 
-        if (!userSub || !business) return;
+        if (!userSub || !business) {
+          return;
+        }
 
         // Find user with matching profileOwner from userSub
         const usersList = await dataClient.models.User.list({
@@ -203,7 +205,9 @@ const BusinessDetails: React.FC = () => {
   };
 
   const getStatusChipStyles = (status?: BusinessStatusType) => {
-    if (!status) return {};
+    if (!status) {
+      return {};
+    }
 
     return {
       backgroundColor:
@@ -474,7 +478,7 @@ const BusinessDetails: React.FC = () => {
                 {userRelationship.isOwner ? (
                   <span style={{ fontWeight: "bold" }}>you</span>
                 ) : (
-                  <a href={`/admin/users/${business.user.id}`}>
+                  <a>
                     {business.user?.firstName || "N/A"}{" "}
                     {business.user?.lastName || "N/A"}
                   </a>

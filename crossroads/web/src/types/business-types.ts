@@ -33,6 +33,7 @@ export type BusinessLocation = {
 
 export type ResolvedProduct = {
   id: string;
+  userId: string;
   businessId: string;
   productName: string;
   productDescription: string[];
@@ -40,10 +41,12 @@ export type ResolvedProduct = {
   createdAt?: string;
   updatedAt?: string;
   price: number;
+  user?: BusinessUser;
 };
 
 export type Product = {
   id: string, 
+  userId: string;
   businessId: string;
   productName: string;
   productDescription: string[];
@@ -51,6 +54,7 @@ export type Product = {
   createdAt?: string;
   updatedAt?: string;
   price: number;
+  user?: BusinessUser;
 };
 
 export type BusinessOwnerPost = {
