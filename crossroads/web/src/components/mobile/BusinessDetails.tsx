@@ -21,6 +21,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ImageIcon from "@mui/icons-material/Image";
 import ShareIcon from "@mui/icons-material/Share";
+import BusinessIcon from "@mui/icons-material/Business";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../amplify/data/resource";
 import { getFileUrl } from "../../helpers/storageHelpers";
@@ -30,143 +31,109 @@ import {
 } from "../../types/business-types";
 import { BUSINESS_STATUS_COLOR_MAPPING } from "../../config/StyleConfig";
 import { formatDate } from "../../helpers/timeHelpers";
+import { fetchUserAttributes } from "aws-amplify/auth";
+import { useFetchBusinessById } from "../../helpers/businessHelpers";
 
 const dataClient = generateClient<Schema>();
 
 // Define the TypeScript interface for business based on the data structure used in BusinessTable
-interface BusinessLocation {
-  streetAddress?: string;
-  secondaryAddress?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-}
 
-interface BusinessUser {
-  id?: string;
-  username?: string;
-  firstName?: string;
-  lastName?: string;
-}
-
-interface Business {
-  id: string;
-  name: string;
-  userId: string;
-  description?: string;
-  category?: string[];
-  location?: BusinessLocation;
-  phone?: string;
-  website?: string;
-  email?: string;
-  hours?: string;
-  profilePhoto?: string;
-  isMinorityOwned?: boolean;
-  status?: BusinessStatusType;
-  averageRating?: number;
-  createdAt?: string;
-  updatedAt?: string;
-  user?: BusinessUser;
+interface UserRelationship {
+  isOwner: boolean;
+  isSubscribed: boolean;
+  currentUserId: string | null;
 }
 
 const BusinessDetails: React.FC = () => {
   const { businessId } = useParams<{ businessId: string }>();
   const navigate = useNavigate();
      
-  const [business, setBusiness] = useState<Business | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [userRelationship, setUserRelationship] = useState<UserRelationship>({
+    isOwner: false,
+    isSubscribed: false,
+    currentUserId: null
+  });
+  
+  // Use the enhanced hook to fetch business details with all related data
+  const { business, loading, error } = useFetchBusinessById(businessId || '');
+  console.log(business)
 
-  // Fetch business details
+  // Check if the current user is the owner or subscribed to this business
   useEffect(() => {
-    const fetchBusinessDetails = async () => {
-      if (!businessId) {
-        setError("Business ID is missing");
-        setLoading(false);
-        return;
-      }
-
+    const determineUserRelationship = async () => {
       try {
-        const result = await dataClient.models.Business.get({
-          id: businessId,
-          // selectionSet: [
-          //   "id",
-          //   "name",
-          //   "userId",
-          //   "description",
-          //   "category",
-          //   "location.streetAddress",
-          //   "location.secondaryAddress",
-          //   "location.city",
-          //   "location.state",
-          //   "location.zip",
-          //   "phone",
-          //   "website",
-          //   "email",
-          //   "hours",
-          //   "profilePhoto",
-          //   "isMinorityOwned",
-          //   "status",
-          //   "averageRating",
-          //   "createdAt",
-          //   "updatedAt",
-          //   "user.id",
-          //   "user.username",
-          //   "user.firstName",
-          //   "user.lastName",
-          // ],
+        // Get current user attributes
+        const userAttributes = await fetchUserAttributes();
+        const userSub = userAttributes?.sub?.trim() ?? "";
+        
+        if (!userSub || !business) return;
+        
+        // Find user with matching profileOwner from userSub
+        const usersList = await dataClient.models.User.list({
+          filter: { profileOwner: { eq: userSub } }
         });
-
-        if (result.data) {
-          setBusiness(result.data as unknown as Business);
-
-          // Load profile image if available
-          if (result.data.profilePhoto) {
-            try {
-              const url = await getFileUrl(result.data.profilePhoto);
-              setImageUrl(url);
-            } catch (imgError) {
-              console.error("Error loading business image:", imgError);
+        
+        if (usersList.data && usersList.data.length > 0) {
+          const currentUserId = usersList.data[0].id;
+          
+          // Check if user is the owner
+          const isOwner = business.userId === currentUserId;
+          
+          // Check if user is subscribed
+          const subscriptions = await dataClient.models.UserBusinessSubscription.list({
+            filter: { 
+              businessId: { eq: businessId },
+              userId: { eq: currentUserId }
             }
-          }
-
-          // Check if user is subscribed to this business
-          try {
-            const subscriptions =
-              await dataClient.models.UserBusinessSubscription.list({
-                filter: { businessId: { eq: businessId } },
-              });
-
-            setIsSubscribed(subscriptions.data.length > 0);
-          } catch (subError) {
-            console.error("Error checking subscription:", subError);
-          }
-        } else {
-          setError("Business not found");
+          });
+          
+          const isSubscribed = subscriptions.data.length > 0;
+          
+          setUserRelationship({
+            isOwner,
+            isSubscribed,
+            currentUserId
+          });
         }
       } catch (err) {
-        console.error("Error fetching business details:", err);
-        setError("Failed to load business details");
-      } finally {
-        setLoading(false);
+        console.error("Error determining user relationship:", err);
       }
     };
 
-    fetchBusinessDetails();
-  }, [businessId]);
+    determineUserRelationship();
+  }, [business, businessId]);
+
+  // Load profile image when business data is available
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      if (business?.profilePhoto) {
+        try {
+          const url = await getFileUrl(business.profilePhoto);
+          setImageUrl(url);
+        } catch (imgError) {
+          console.error("Error loading business image:", imgError);
+        }
+      }
+    };
+
+    if (business) {
+      loadProfileImage();
+    }
+  }, [business]);
 
   const toggleSubscription = async () => {
-    if (!business) return;
+    if (!business || !userRelationship.currentUserId) return;
     
     try {
-      if (isSubscribed) {
+      if (userRelationship.isSubscribed) {
         // Find and delete subscription
-        const subscriptions =
-          await dataClient.models.UserBusinessSubscription.list({
-            filter: { businessId: { eq: businessId } },
-          });
+        const subscriptions = await dataClient.models.UserBusinessSubscription.list({
+          filter: { 
+            businessId: { eq: businessId },
+            userId: { eq: userRelationship.currentUserId }
+          }
+        });
 
         if (subscriptions.data.length > 0) {
           await dataClient.models.UserBusinessSubscription.delete({
@@ -177,12 +144,15 @@ const BusinessDetails: React.FC = () => {
         // Create new subscription
         await dataClient.models.UserBusinessSubscription.create({
           businessId: businessId || "",
-          userId: business.userId,
+          userId: userRelationship.currentUserId,
           subscribedAt: new Date().toISOString(),
         });
       }
 
-      setIsSubscribed(!isSubscribed);
+      setUserRelationship({
+        ...userRelationship,
+        isSubscribed: !userRelationship.isSubscribed
+      });
     } catch (error) {
       console.error("Error toggling subscription:", error);
     }
@@ -264,6 +234,30 @@ const BusinessDetails: React.FC = () => {
             <ImageIcon fontSize="large" sx={{ color: "#9e9e9e" }} />
           )}
 
+          {/* User relationship indicator */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 10,
+              left: 10,
+              display: "flex",
+              gap: 1,
+            }}
+          >
+            {userRelationship.isOwner && (
+              <Chip
+                icon={<BusinessIcon />}
+                label="You own this"
+                size="small"
+                sx={{
+                  backgroundColor: "#4caf50",
+                  color: "white",
+                  fontWeight: "bold",
+                }}
+              />
+            )}
+          </Box>
+
           {/* Action buttons overlay */}
           <Box
             sx={{
@@ -274,19 +268,22 @@ const BusinessDetails: React.FC = () => {
               gap: 1,
             }}
           >
-            <IconButton
-              sx={{
-                backgroundColor: "rgba(255, 255, 255, 0.9)",
-                "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.8)" },
-              }}
-              onClick={toggleSubscription}
-            >
-              {isSubscribed ? (
-                <FavoriteIcon sx={{ color: "#f44336" }} />
-              ) : (
-                <FavoriteBorderIcon />
-              )}
-            </IconButton>
+            {!userRelationship.isOwner && (
+              <IconButton
+                sx={{
+                  backgroundColor: "rgba(255, 255, 255, 0.9)",
+                  "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.8)" },
+                }}
+                onClick={toggleSubscription}
+                title={userRelationship.isSubscribed ? "Unsubscribe" : "Subscribe"}
+              >
+                {userRelationship.isSubscribed ? (
+                  <FavoriteIcon sx={{ color: "#f44336" }} />
+                ) : (
+                  <FavoriteBorderIcon />
+                )}
+              </IconButton>
+            )}
 
             <IconButton
               sx={{
@@ -354,6 +351,25 @@ const BusinessDetails: React.FC = () => {
             </Typography>
           )}
 
+          {/* Subscription status for non-owners */}
+          {!userRelationship.isOwner && userRelationship.currentUserId && (
+            <Box sx={{ mb: 2 }}>
+              <Chip
+                icon={userRelationship.isSubscribed ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                label={userRelationship.isSubscribed ? "Subscribed" : "Not subscribed"}
+                size="small"
+                color={userRelationship.isSubscribed ? "primary" : "default"}
+                sx={{ mb: 1 }}
+                onClick={toggleSubscription}
+              />
+              {userRelationship.isSubscribed && (
+                <Typography variant="body2" color="text.secondary">
+                  You will receive updates from this business.
+                </Typography>
+              )}
+            </Box>
+          )}
+
           {/* Owner info */}
           {business.user && (
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
@@ -364,9 +380,13 @@ const BusinessDetails: React.FC = () => {
               </Avatar>
               <Typography variant="body2" color="text.secondary">
                 Owned by{" "}
-                <a href={`/admin/users/${business.user.id}`}>
-                  {business.user?.firstName || "N/A"} {business.user?.lastName || "N/A"}
-                </a>
+                {userRelationship.isOwner ? (
+                  <span style={{ fontWeight: "bold" }}>you</span>
+                ) : (
+                  <a href={`/admin/users/${business.user.id}`}>
+                    {business.user?.firstName || "N/A"} {business.user?.lastName || "N/A"}
+                  </a>
+                )}
               </Typography>
             </Box>
           )}
@@ -494,9 +514,24 @@ const BusinessDetails: React.FC = () => {
           <Divider sx={{ my: 2 }} />
 
           {/* Products section placeholder */}
-          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-            Products
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">
+              Products
+            </Typography>
+            
+            {userRelationship.isOwner && (
+              <Button variant="contained" size="small">
+                Add Product
+              </Button>
+            )}
+          </Box>
 
           <Box
             sx={{
@@ -525,9 +560,11 @@ const BusinessDetails: React.FC = () => {
             }}
           >
             <span>Reviews</span>
-            <Button variant="contained" size="small">
-              Write a Review
-            </Button>
+            {!userRelationship.isOwner && (
+              <Button variant="contained" size="small">
+                Write a Review
+              </Button>
+            )}
           </Typography>
 
           <Box
