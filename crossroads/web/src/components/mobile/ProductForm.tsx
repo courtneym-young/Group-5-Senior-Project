@@ -10,11 +10,13 @@ import {
   IconButton,
   Box,
   Typography,
-  InputAdornment
+  InputAdornment,
+  LinearProgress 
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../amplify/data/resource";
+import { uploadBusinessImage } from "../../helpers/storageHelpers";
 
 const dataClient = generateClient<Schema>();
 
@@ -29,15 +31,42 @@ const ProductForm: React.FC<{
   const [productDescription, setProductDescription] = useState("");
   const [price, setPrice] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [, setImageFile] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        // You could add error state and display here
+        console.error("Image size should be less than 5MB");
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.match('image.*')) {
+        console.error("Please select an image file");
+        return;
+      }
+      
       setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
+  };
+
+  const clearSelectedImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setUploadProgress(0);
   };
 
   const handleSubmit = async () => {
@@ -48,19 +77,36 @@ const ProductForm: React.FC<{
     try {
       setSubmitting(true);
       
-      // In a real implementation, you would upload the image to storage
-      // and get back a URL. This is simplified for now.
-      const imageUrl = imagePreview || "/api/placeholder/400/300";
+      // Handle image upload if present
+      let imageUrl = "https://t3.ftcdn.net/jpg/03/35/13/14/360_F_335131435_DrHIQjlOKlu3GCXtpFkIG1v0cGgM9vJC.jpg"; // Default image
+      
+      if (imageFile) {
+        try {
+          // Generate a unique product ID for the upload path
+          const productUploadId = `product-${businessId}-${Date.now()}`;
+          
+          // Upload the image
+          imageUrl = await uploadBusinessImage(
+            imageFile,
+            productUploadId,
+            (progress) => {
+              const percentage = Math.round((progress.transferredBytes / progress.totalBytes) * 100);
+              setUploadProgress(percentage);
+            }
+          );
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          // Could add error state here
+        }
+      }
       
       // Create the product in the database
-      console.log(businessId,
-        productName,)
       await dataClient.models.Product.create({
         businessId,
         userId,
         productName,
         productDescription: productDescription || "",
-        productImage: imageUrl ?? "https://t3.ftcdn.net/jpg/03/35/13/14/360_F_335131435_DrHIQjlOKlu3GCXtpFkIG1v0cGgM9vJC.jpg",
+        productImage: imageUrl,
         price: parseFloat(price),
         createdAt: new Date().toISOString(),
       });
@@ -74,7 +120,7 @@ const ProductForm: React.FC<{
       setPrice("");
       setImageFile(null);
       setImagePreview(null);
-      console.log("Submitted!!")
+      setUploadProgress(0);
     } catch (error) {
       console.error("Error submitting product:", error);
       setSubmitting(false);
@@ -137,42 +183,57 @@ const ProductForm: React.FC<{
         />
         
         <Box sx={{ mb: 2 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Product Image
-          </Typography>
-          <input
-            accept="image/*"
-            id="product-image-upload"
-            type="file"
-            onChange={handleImageChange}
-            style={{ display: 'none' }}
-          />
-          <label htmlFor="product-image-upload">
-            <Button variant="outlined" component="span">
-              Upload Image
-            </Button>
-          </label>
-          
-          {imagePreview && (
-            <Box mt={2} sx={{ position: 'relative' }}>
+        <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Product Image</Typography>
+        
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2, border: '1px dashed #ccc', borderRadius: 1, p: 2 }}>
+          {imagePreview ? (
+            <Box sx={{ position: 'relative', width: '100%', textAlign: 'center' }}>
               <img 
-                src={imagePreview}
-                alt="Product preview"
-                style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '4px' }}
+                src={imagePreview} 
+                alt="Product preview" 
+                style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain' }} 
               />
-              <IconButton
-                size="small"
-                sx={{ position: 'absolute', top: 0, right: 0, bgcolor: 'white' }}
-                onClick={() => {
-                  setImageFile(null);
-                  setImagePreview(null);
-                }}
+              <Button 
+                variant="outlined" 
+                color="error" 
+                size="small" 
+                onClick={clearSelectedImage}
+                sx={{ mt: 1 }}
               >
-                <CloseIcon fontSize="small" />
-              </IconButton>
+                Remove Image
+              </Button>
+            </Box>
+          ) : (
+            <Button
+              variant="outlined"
+              component="label"
+              sx={{ width: '100%', height: '120px', display: 'flex', flexDirection: 'column' }}
+            >
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                Click to upload product image
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                JPEG, PNG, WebP • Max 5MB
+              </Typography>
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+            </Button>
+          )}
+          
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <Box sx={{ width: '100%', mt: 1 }}>
+              <LinearProgress variant="determinate" value={uploadProgress} />
+              <Typography variant="caption" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
+                Uploading: {uploadProgress}%
+              </Typography>
             </Box>
           )}
         </Box>
+      </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
