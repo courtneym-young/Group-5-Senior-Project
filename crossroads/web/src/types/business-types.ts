@@ -36,7 +36,7 @@ export type ResolvedProduct = {
   userId: string;
   businessId: string;
   productName: string;
-  productDescription: string[];
+  productDescription: string;
   productImage: string;
   createdAt?: string;
   updatedAt?: string;
@@ -49,7 +49,7 @@ export type Product = {
   userId: string;
   businessId: string;
   productName: string;
-  productDescription: string[];
+  productDescription: string;
   productImage: string;
   createdAt?: string;
   updatedAt?: string;

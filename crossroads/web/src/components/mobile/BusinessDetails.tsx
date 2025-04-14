@@ -780,17 +780,15 @@ const BusinessDetails: React.FC = () => {
                         </Typography>
                       </Box>
 
-                      {product.productDescription &&
-                        product.productDescription.map((desc, idx) => (
-                          <Typography
-                            key={idx}
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mt: 1 }}
-                          >
-                            {desc}
-                          </Typography>
-                        ))}
+                      {product.productDescription && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mt: 1 }}
+                        >
+                          {product.productDescription}
+                        </Typography>
+                      )}
 
                       <Button
                         variant="outlined"

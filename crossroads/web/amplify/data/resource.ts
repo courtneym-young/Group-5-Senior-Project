@@ -27,6 +27,7 @@ const schema = a
         reviews: a.hasMany("Review", "userId"), // A user can have many reviews (One-to-Many)
         businessOwnerPosts: a.hasMany("BusinessOwnerPost", "userId"), // A user can create multiple detailed posts (One-to-Many)
         subscriptions: a.hasMany("UserBusinessSubscription", "userId"), // A user can subscribe to multiple businesses (Many-to-Many)
+        products: a.hasMany("Product", "userId"), // A user can create multiple products
         businesses: a.hasMany("Business", "userId"), // A user can own multiple businesses (One-to-Many)
       })
       .authorization((allow) => [
@@ -77,12 +78,12 @@ const schema = a
         userId: a.string().required(),
         businessId: a.string().required(), // References the business the post is for
         productName: a.string().required(),
-        productDescription: a.string().array(),
+        productDescription: a.string(),
         productImage: a.url().required(),
         createdAt: a.datetime(),
         updatedAt: a.datetime(),
-        price: a.float().required(), // Relate to user who created it
-        user: a.belongsTo("User", "userId"),
+        price: a.float().required(),
+        user: a.belongsTo("User", "userId"), // Relate to user who created it
         business: a.belongsTo("Business", "businessId") // Relate to the business
       })
       .authorization((allow) => [
