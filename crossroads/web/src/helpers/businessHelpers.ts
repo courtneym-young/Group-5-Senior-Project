@@ -564,6 +564,7 @@ export const useFetchBusinessById = (businessId: string) => {
           // Business owner posts
           "businessOwnerPosts.id",
           "businessOwnerPosts.userId",
+          "businessOwnerPosts.businessId",
           "businessOwnerPosts.content",
           "businessOwnerPosts.images",
           "businessOwnerPosts.createdAt",
@@ -685,7 +686,7 @@ export const useFetchBusinessById = (businessId: string) => {
           subscribers: resolvedSubscribers
         };
 
-        setBusiness(completeBusinessData as ResolvedBusinessEx);
+        setBusiness(completeBusinessData as unknown as ResolvedBusinessEx);
         setError(null);
       }
     } catch (error) {
@@ -751,6 +752,7 @@ export const fetchBusinessById = async (businessId: string) => {
         // Business owner posts
         "businessOwnerPosts.id",
         "businessOwnerPosts.userId",
+        "businessOwnerPosts.businessId",
         "businessOwnerPosts.content",
         "businessOwnerPosts.images",
         "businessOwnerPosts.createdAt",
@@ -872,7 +874,7 @@ export const fetchBusinessById = async (businessId: string) => {
       subscribers: resolvedSubscribers
     };
 
-    return completeBusinessData as ResolvedBusinessEx;
+    return completeBusinessData as unknown as ResolvedBusinessEx;
   } catch (error) {
     console.error("Error fetching business by ID:", error);
     throw error;
