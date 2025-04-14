@@ -65,7 +65,7 @@ const schema = a
         business: a.belongsTo("Business", "businessId") // Relate to the business
       })
       .authorization((allow) => [
-        allow.owner().to(["create", "update", "delete"]), // Users can manage their own posts
+        allow.owner().to(["create", "read", "update", "delete"]), // Users can manage their own posts
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
         allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
         allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
@@ -74,6 +74,7 @@ const schema = a
       // A business can have many products.
       Product: a
       .model({
+        userId: a.string().required(),
         businessId: a.string().required(), // References the business the post is for
         productName: a.string().required(),
         productDescription: a.string().array(),

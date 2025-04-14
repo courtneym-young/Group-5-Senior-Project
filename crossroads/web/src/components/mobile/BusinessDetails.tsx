@@ -41,6 +41,8 @@ import { formatDate } from "../../helpers/timeHelpers";
 import { fetchUserAttributes } from "aws-amplify/auth";
 import { useFetchBusinessById } from "../../helpers/businessHelpers";
 import { ReviewsSection } from "./AddBusinessReviewSection";
+import ProductForm from "./ProductForm";
+import BusinessPostForm from "./BusinessPostForm";
 
 const dataClient = generateClient<Schema>();
 
@@ -54,6 +56,8 @@ interface UserRelationship {
 }
 
 const BusinessDetails: React.FC = () => {
+  const [openProductForm, setOpenProductForm] = useState(false);
+  const [openPostForm, setOpenPostForm] = useState(false);
   const { businessId } = useParams<{ businessId: string }>();
   const navigate = useNavigate();
 
@@ -119,6 +123,22 @@ const BusinessDetails: React.FC = () => {
 
     determineUserRelationship();
   }, [business, businessId]);
+
+  const handleOpenProductForm = () => {
+    setOpenProductForm(true);
+  };
+
+  const handleCloseProductForm = () => {
+    setOpenProductForm(false);
+  };
+
+  const handleOpenPostForm = () => {
+    setOpenPostForm(true);
+  };
+
+  const handleClosePostForm = () => {
+    setOpenPostForm(false);
+  };
 
   // Load profile image when business data is available
   useEffect(() => {
@@ -514,7 +534,11 @@ const BusinessDetails: React.FC = () => {
             </Typography>
 
             {userRelationship.isOwner && (
-              <Button variant="contained" size="small">
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleOpenPostForm}
+              >
                 New Post
               </Button>
             )}
@@ -699,7 +723,11 @@ const BusinessDetails: React.FC = () => {
             </Typography>
 
             {userRelationship.isOwner && (
-              <Button variant="contained" size="small">
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleOpenProductForm}
+              >
                 Add Product
               </Button>
             )}
@@ -799,6 +827,29 @@ const BusinessDetails: React.FC = () => {
             userRelationship={userRelationship}
             // refreshBusiness={refreshBusinessData}
           />
+          {userRelationship.isOwner && (
+            <ProductForm
+              userId={userRelationship.currentUserId || ""}
+              businessId={business.id}
+              open={openProductForm}
+              onClose={handleCloseProductForm}
+            />
+          )}
+
+          {userRelationship.isOwner && business.user && (
+            <BusinessPostForm
+              businessId={business.id}
+              userId={userRelationship.currentUserId || ""}
+              userProfile={{
+                firstName: business.user?.firstName,
+                lastName: business.user?.lastName,
+                username: business.user?.username,
+                profilePhoto: business.user?.profilePhoto,
+              }}
+              open={openPostForm}
+              onClose={handleClosePostForm}
+            />
+          )}
         </Box>
       </Box>
     </MobileLayout>

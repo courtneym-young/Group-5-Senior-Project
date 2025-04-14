@@ -83,7 +83,7 @@ const ReviewForm: React.FC<{
           <Rating
             name="business-rating"
             value={rating}
-            onChange={(event, newValue) => {
+            onChange={(_event, newValue) => {
               setRating(newValue);
             }}
             size="large"
