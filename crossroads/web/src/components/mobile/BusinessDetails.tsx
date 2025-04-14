@@ -40,6 +40,7 @@ import { BUSINESS_STATUS_COLOR_MAPPING } from "../../config/StyleConfig";
 import { formatDate } from "../../helpers/timeHelpers";
 import { fetchUserAttributes } from "aws-amplify/auth";
 import { useFetchBusinessById } from "../../helpers/businessHelpers";
+import { ReviewsSection } from "./AddBusinessReviewSection";
 
 const dataClient = generateClient<Schema>();
 
@@ -792,37 +793,12 @@ const BusinessDetails: React.FC = () => {
 
           <Divider sx={{ my: 2 }} />
 
-          {/* Reviews section placeholder */}
-          <Typography
-            variant="h6"
-            fontWeight="bold"
-            sx={{
-              mb: 2,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <span>Reviews</span>
-            {!userRelationship.isOwner && (
-              <Button variant="contained" size="small">
-                Write a Review
-              </Button>
-            )}
-          </Typography>
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100px",
-              bgcolor: "#f5f5f5",
-              borderRadius: "8px",
-            }}
-          >
-            <Typography color="text.secondary">No reviews yet</Typography>
-          </Box>
+          {/* Review Section */}
+          <ReviewsSection
+            business={business}
+            userRelationship={userRelationship}
+            // refreshBusiness={refreshBusinessData}
+          />
         </Box>
       </Box>
     </MobileLayout>
