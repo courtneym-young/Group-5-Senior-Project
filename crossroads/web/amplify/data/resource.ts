@@ -79,10 +79,10 @@ const schema = a
         businessId: a.string().required(), // References the business the post is for
         productName: a.string().required(),
         productDescription: a.string(),
-        productImage: a.url().required(),
+        productImage: a.string(),
         createdAt: a.datetime(),
         updatedAt: a.datetime(),
-        price: a.float().required(),
+        price: a.float(),
         user: a.belongsTo("User", "userId"), // Relate to user who created it
         business: a.belongsTo("Business", "businessId") // Relate to the business
       })

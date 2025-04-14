@@ -107,7 +107,7 @@ const ProductForm: React.FC<{
         productName,
         productDescription: productDescription || "",
         productImage: imageUrl,
-        price: parseFloat(price),
+        price: isNaN(parseFloat(price)) ? 0.00 : parseFloat(price),
         createdAt: new Date().toISOString(),
       });
       
