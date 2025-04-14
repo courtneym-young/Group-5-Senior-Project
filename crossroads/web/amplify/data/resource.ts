@@ -134,7 +134,7 @@ const schema = a
       .model({
         businessId: a.string().required(),
         userId: a.string().required(), // Connects to the user who wrote the review
-        rating: a.integer().required(),
+        rating: a.float().required(),
         text: a.string(),
         images: a.string().array(),
         isPublic: a.boolean(),

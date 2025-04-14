@@ -90,7 +90,7 @@ const BusinessDetails: React.FC = () => {
 
         // Find user with matching profileOwner from userSub
         const usersList = await dataClient.models.User.list({
-          filter: { profileOwner: { eq: userSub } },
+          filter: { profileOwner: { contains: userSub } },
         });
 
         if (usersList.data && usersList.data.length > 0) {

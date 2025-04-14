@@ -49,13 +49,14 @@ const ReviewForm: React.FC<{
         userId,
         rating: rating || 0,
         text: reviewText,
+        images: [],
         isPublic: true,
       })
 
       await dataClient.models.Review.create({
         businessId,
         userId,
-        rating: rating || 0,
+        rating: rating || 1,
         text: reviewText,
         images: [],
         isPublic: true,
