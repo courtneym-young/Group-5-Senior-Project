@@ -515,6 +515,371 @@ export const deleteBusinessAsAdmin = async (businessId: string) => {
   }
 };
 
+export const useFetchBusinessById = (businessId: string) => {
+  const [business, setBusiness] = useState<ResolvedBusinessEx | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchBusiness = async () => {
+    if (!businessId) {
+      setError("Business ID is required");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Fetch the business with all relevant fields
+      const result = await client.models.Business.get({
+        id: businessId}, {
+        selectionSet: [
+          "id",
+          "name",
+          "userId",
+          "description",
+          "category",
+          "location.streetAddress",
+          "location.secondaryAddress",
+          "location.city",
+          "location.state",
+          "location.zip",
+          "phone",
+          "website",
+          "email",
+          "hours",
+          "profilePhoto",
+          "isMinorityOwned",
+          "status",
+          "averageRating",
+          "createdAt",
+          "updatedAt",
+          // User details
+          "user.id",
+          "user.profileOwner",
+          "user.username",
+          "user.firstName",
+          "user.lastName",
+          "user.groupName",
+          "user.profilePhoto",
+          // Business owner posts
+          "businessOwnerPosts.id",
+          "businessOwnerPosts.userId",
+          "businessOwnerPosts.content",
+          "businessOwnerPosts.images",
+          "businessOwnerPosts.createdAt",
+          "businessOwnerPosts.updatedAt",
+          "businessOwnerPosts.user.username",
+          "businessOwnerPosts.user.firstName",
+          "businessOwnerPosts.user.lastName",
+          "businessOwnerPosts.user.profilePhoto",
+          // Products
+          "businessProducts.id",
+          "businessProducts.businessId",
+          "businessProducts.productName",
+          "businessProducts.productDescription",
+          "businessProducts.productImage",
+          "businessProducts.price",
+          "businessProducts.createdAt",
+          "businessProducts.updatedAt",
+          // Reviews
+          "reviews.id",
+          "reviews.businessId",
+          "reviews.userId",
+          "reviews.rating",
+          "reviews.text",
+          "reviews.images",
+          "reviews.isPublic",
+          "reviews.createdAt",
+          "reviews.updatedAt",
+          "reviews.user.username",
+          "reviews.user.firstName",
+          "reviews.user.lastName",
+          "reviews.user.profilePhoto",
+          // Subscribers
+          "subscribers.id",
+          "subscribers.userId",
+          "subscribers.businessId",
+          "subscribers.subscribedAt",
+          "subscribers.user.username",
+          "subscribers.user.firstName",
+          "subscribers.user.lastName"
+        ],
+      });
+
+      if (!result.data) {
+        setError("Business not found");
+        setBusiness(null);
+      } else {
+        // Process the data to resolve any lazy-loaded properties
+        const businessData = result.data;
+        
+        // Resolve user if it's a LazyLoader
+        let resolvedUser = businessData.user;
+        if (resolvedUser && typeof resolvedUser === "object" && "then" in resolvedUser) {
+          resolvedUser = await resolvedUser;
+        }
+        
+        // Resolve business owner posts if they're LazyLoaders
+        let resolvedBusinessOwnerPosts = businessData.businessOwnerPosts || [];
+        if (resolvedBusinessOwnerPosts && typeof resolvedBusinessOwnerPosts === "object" && "then" in resolvedBusinessOwnerPosts) {
+          resolvedBusinessOwnerPosts = await resolvedBusinessOwnerPosts;
+        }
+
+        // Resolve business products if they're LazyLoaders
+        let resolvedBusinessProducts = businessData.businessProducts || [];
+        if (resolvedBusinessProducts && typeof resolvedBusinessProducts === "object" && "then" in resolvedBusinessProducts) {
+          resolvedBusinessProducts = await resolvedBusinessProducts;
+        }
+
+        // Resolve reviews if they're LazyLoaders
+        let resolvedReviews = businessData.reviews || [];
+        if (resolvedReviews && typeof resolvedReviews === "object" && "then" in resolvedReviews) {
+          resolvedReviews = await resolvedReviews;
+        }
+
+        // Resolve subscribers if they're LazyLoaders
+        let resolvedSubscribers = businessData.subscribers || [];
+        if (resolvedSubscribers && typeof resolvedSubscribers === "object" && "then" in resolvedSubscribers) {
+          resolvedSubscribers = await resolvedSubscribers;
+        }
+
+        // For each review, ensure its user is resolved
+        if (Array.isArray(resolvedReviews)) {
+          resolvedReviews = await Promise.all(resolvedReviews.map(async (review) => {
+            if (review.user && typeof review.user === "object" && "then" in review.user) {
+              const resolvedUser = await review.user;
+              return { ...review, user: resolvedUser };
+            }
+            return review;
+          }));
+        }
+
+        // For each business owner post, ensure its user is resolved
+        if (Array.isArray(resolvedBusinessOwnerPosts)) {
+          resolvedBusinessOwnerPosts = await Promise.all(resolvedBusinessOwnerPosts.map(async (post) => {
+            if (post.user && typeof post.user === "object" && "then" in post.user) {
+              const resolvedUser = await post.user;
+              return { ...post, user: resolvedUser };
+            }
+            return post;
+          }));
+        }
+
+        // For each subscriber, ensure its user is resolved
+        if (Array.isArray(resolvedSubscribers)) {
+          resolvedSubscribers = await Promise.all(resolvedSubscribers.map(async (subscriber) => {
+            if (subscriber.user && typeof subscriber.user === "object" && "then" in subscriber.user) {
+              const resolvedUser = await subscriber.user;
+              return { ...subscriber, user: resolvedUser };
+            }
+            return subscriber;
+          }));
+        }
+
+        const completeBusinessData = {
+          ...businessData,
+          user: resolvedUser,
+          businessOwnerPosts: resolvedBusinessOwnerPosts,
+          businessProducts: resolvedBusinessProducts,
+          reviews: resolvedReviews,
+          subscribers: resolvedSubscribers
+        };
+
+        setBusiness(completeBusinessData as ResolvedBusinessEx);
+        setError(null);
+      }
+    } catch (error) {
+      console.error("Error fetching business by ID:", error);
+      setError(`Failed to fetch business: ${error instanceof Error ? error.message : String(error)}`);
+      setBusiness(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBusiness();
+  }, [businessId]);
+
+  return { business, loading, error, refetch: fetchBusiness };
+};
+
+/**
+ * Function to fetch a business by ID without using hooks
+ * Useful for one-time fetches or in non-component contexts
+ * 
+ * @param businessId The ID of the business to fetch
+ * @returns {Promise} The business data with all related information
+ */
+export const fetchBusinessById = async (businessId: string) => {
+  if (!businessId) {
+    throw new Error("Business ID is required");
+  }
+
+  try {
+    const result = await client.models.Business.get({
+      id: businessId,},{
+      selectionSet: [
+        "id",
+        "name",
+        "userId",
+        "description",
+        "category",
+        "location.streetAddress",
+        "location.secondaryAddress",
+        "location.city",
+        "location.state",
+        "location.zip",
+        "phone",
+        "website",
+        "email",
+        "hours",
+        "profilePhoto",
+        "isMinorityOwned",
+        "status",
+        "averageRating",
+        "createdAt",
+        "updatedAt",
+        // User details
+        "user.id",
+        "user.profileOwner",
+        "user.username",
+        "user.firstName",
+        "user.lastName",
+        "user.groupName",
+        "user.profilePhoto",
+        // Business owner posts
+        "businessOwnerPosts.id",
+        "businessOwnerPosts.userId",
+        "businessOwnerPosts.content",
+        "businessOwnerPosts.images",
+        "businessOwnerPosts.createdAt",
+        "businessOwnerPosts.updatedAt",
+        "businessOwnerPosts.user.username",
+        "businessOwnerPosts.user.firstName",
+        "businessOwnerPosts.user.lastName",
+        "businessOwnerPosts.user.profilePhoto",
+        // Products
+        "businessProducts.id",
+        "businessProducts.businessId",
+        "businessProducts.productName",
+        "businessProducts.productDescription",
+        "businessProducts.productImage",
+        "businessProducts.price",
+        "businessProducts.createdAt",
+        "businessProducts.updatedAt",
+        // Reviews
+        "reviews.id",
+        "reviews.businessId",
+        "reviews.userId",
+        "reviews.rating",
+        "reviews.text",
+        "reviews.images",
+        "reviews.isPublic",
+        "reviews.createdAt",
+        "reviews.updatedAt",
+        "reviews.user.username",
+        "reviews.user.firstName",
+        "reviews.user.lastName",
+        "reviews.user.profilePhoto",
+        // Subscribers
+        "subscribers.id",
+        "subscribers.userId",
+        "subscribers.businessId",
+        "subscribers.subscribedAt",
+        "subscribers.user.username",
+        "subscribers.user.firstName",
+        "subscribers.user.lastName"
+      ],
+    });
+
+    if (!result.data) {
+      throw new Error("Business not found");
+    }
+
+    // Process the data to resolve any lazy-loaded properties
+    const businessData = result.data;
+    
+    // Resolve user if it's a LazyLoader
+    let resolvedUser = businessData.user;
+    if (resolvedUser && typeof resolvedUser === "object" && "then" in resolvedUser) {
+      resolvedUser = await resolvedUser;
+    }
+    
+    // Resolve business owner posts if they're LazyLoaders
+    let resolvedBusinessOwnerPosts = businessData.businessOwnerPosts || [];
+    if (resolvedBusinessOwnerPosts && typeof resolvedBusinessOwnerPosts === "object" && "then" in resolvedBusinessOwnerPosts) {
+      resolvedBusinessOwnerPosts = await resolvedBusinessOwnerPosts;
+    }
+
+    // Resolve business products if they're LazyLoaders
+    let resolvedBusinessProducts = businessData.businessProducts || [];
+    if (resolvedBusinessProducts && typeof resolvedBusinessProducts === "object" && "then" in resolvedBusinessProducts) {
+      resolvedBusinessProducts = await resolvedBusinessProducts;
+    }
+
+    // Resolve reviews if they're LazyLoaders
+    let resolvedReviews = businessData.reviews || [];
+    if (resolvedReviews && typeof resolvedReviews === "object" && "then" in resolvedReviews) {
+      resolvedReviews = await resolvedReviews;
+    }
+
+    // Resolve subscribers if they're LazyLoaders
+    let resolvedSubscribers = businessData.subscribers || [];
+    if (resolvedSubscribers && typeof resolvedSubscribers === "object" && "then" in resolvedSubscribers) {
+      resolvedSubscribers = await resolvedSubscribers;
+    }
+
+    // For each review, ensure its user is resolved
+    if (Array.isArray(resolvedReviews)) {
+      resolvedReviews = await Promise.all(resolvedReviews.map(async (review) => {
+        if (review.user && typeof review.user === "object" && "then" in review.user) {
+          const resolvedUser = await review.user;
+          return { ...review, user: resolvedUser };
+        }
+        return review;
+      }));
+    }
+
+    // For each business owner post, ensure its user is resolved
+    if (Array.isArray(resolvedBusinessOwnerPosts)) {
+      resolvedBusinessOwnerPosts = await Promise.all(resolvedBusinessOwnerPosts.map(async (post) => {
+        if (post.user && typeof post.user === "object" && "then" in post.user) {
+          const resolvedUser = await post.user;
+          return { ...post, user: resolvedUser };
+        }
+        return post;
+      }));
+    }
+
+    // For each subscriber, ensure its user is resolved
+    if (Array.isArray(resolvedSubscribers)) {
+      resolvedSubscribers = await Promise.all(resolvedSubscribers.map(async (subscriber) => {
+        if (subscriber.user && typeof subscriber.user === "object" && "then" in subscriber.user) {
+          const resolvedUser = await subscriber.user;
+          return { ...subscriber, user: resolvedUser };
+        }
+        return subscriber;
+      }));
+    }
+
+    const completeBusinessData = {
+      ...businessData,
+      user: resolvedUser,
+      businessOwnerPosts: resolvedBusinessOwnerPosts,
+      businessProducts: resolvedBusinessProducts,
+      reviews: resolvedReviews,
+      subscribers: resolvedSubscribers
+    };
+
+    return completeBusinessData as ResolvedBusinessEx;
+  } catch (error) {
+    console.error("Error fetching business by ID:", error);
+    throw error;
+  }
+};
+
+
 /**
  * Creates a new product for a specific business.
 
