@@ -312,17 +312,19 @@ export const useCreateBusinessAsUser = async (
   const userAttributes = await fetchUserAttributes();
   const userSub = userAttributes?.sub?.trim() ?? ""; // The user's unique ID
 
-    // Find user with matching profileOwner
-
-    const usersList = await client.models.User.list();
-    const matchingUsers = usersList.data.filter(user => user.profileOwner === userSub);
-    console.log("Filtered Users:", matchingUsers);
-
   if (!userSub) {
     throw new Error("User not authenticated");
   }
 
-  const userId = `${matchingUsers[0].profileOwner}`
+  const usersList = await client.models.User.list({
+    filter: { profileOwner: { eq: userSub } },
+  });
+
+  if (!usersList.data || usersList.data.length === 0) {
+    throw new Error("User profile not found");
+  }
+
+  const userId = usersList.data[0].id;
 
   // Create the business in the database
   const task = await client.models.Business.create({
