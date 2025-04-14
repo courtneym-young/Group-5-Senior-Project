@@ -32,9 +32,9 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../amplify/data/resource";
 import { getFileUrl } from "../../helpers/storageHelpers";
-import { 
-  BusinessStatusType, 
-  BusinessStatusTypes 
+import {
+  BusinessStatusType,
+  BusinessStatusTypes,
 } from "../../types/business-types";
 import { BUSINESS_STATUS_COLOR_MAPPING } from "../../config/StyleConfig";
 import { formatDate } from "../../helpers/timeHelpers";
@@ -55,18 +55,18 @@ interface UserRelationship {
 const BusinessDetails: React.FC = () => {
   const { businessId } = useParams<{ businessId: string }>();
   const navigate = useNavigate();
-     
+
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [userRelationship, setUserRelationship] = useState<UserRelationship>({
     isOwner: false,
     isSubscribed: false,
     currentUserId: null,
-    userRole: "viewer"
+    userRole: "viewer",
   });
-  
+
   // Use the enhanced hook to fetch business details with all related data
-  const { business, loading, error } = useFetchBusinessById(businessId || '');
-  
+  const { business, loading, error } = useFetchBusinessById(businessId || "");
+
   // Check if the current user is the owner or subscribed to this business
   useEffect(() => {
     const determineUserRelationship = async () => {
@@ -74,40 +74,41 @@ const BusinessDetails: React.FC = () => {
         // Get current user attributes
         const userAttributes = await fetchUserAttributes();
         const userSub = userAttributes?.sub?.trim() ?? "";
-        
+
         if (!userSub || !business) return;
-        
+
         // Find user with matching profileOwner from userSub
         const usersList = await dataClient.models.User.list({
-          filter: { profileOwner: { eq: userSub } }
+          filter: { profileOwner: { eq: userSub } },
         });
-        
+
         if (usersList.data && usersList.data.length > 0) {
           const currentUserId = usersList.data[0].id;
-          
+
           // Check if user is the owner
           const isOwner = business.userId === currentUserId;
-          
+
           // Check if user is subscribed
-          const subscriptions = await dataClient.models.UserBusinessSubscription.list({
-            filter: { 
-              businessId: { eq: businessId },
-              userId: { eq: currentUserId }
-            }
-          });
-          
+          const subscriptions =
+            await dataClient.models.UserBusinessSubscription.list({
+              filter: {
+                businessId: { eq: businessId },
+                userId: { eq: currentUserId },
+              },
+            });
+
           const isSubscribed = subscriptions.data.length > 0;
-          
+
           // Determine user role
           let userRole: "owner" | "subscriber" | "viewer" = "viewer";
           if (isOwner) userRole = "owner";
           else if (isSubscribed) userRole = "subscriber";
-          
+
           setUserRelationship({
             isOwner,
             isSubscribed,
             currentUserId,
-            userRole
+            userRole,
           });
         }
       } catch (err) {
@@ -138,27 +139,28 @@ const BusinessDetails: React.FC = () => {
 
   const toggleSubscription = async () => {
     if (!business || !userRelationship.currentUserId) return;
-    
+
     try {
       if (userRelationship.isSubscribed) {
         // Find and delete subscription
-        const subscriptions = await dataClient.models.UserBusinessSubscription.list({
-          filter: { 
-            businessId: { eq: businessId },
-            userId: { eq: userRelationship.currentUserId }
-          }
-        });
+        const subscriptions =
+          await dataClient.models.UserBusinessSubscription.list({
+            filter: {
+              businessId: { eq: businessId },
+              userId: { eq: userRelationship.currentUserId },
+            },
+          });
 
         if (subscriptions.data.length > 0) {
           await dataClient.models.UserBusinessSubscription.delete({
             id: subscriptions.data[0].id,
           });
         }
-        
+
         setUserRelationship({
           ...userRelationship,
           isSubscribed: false,
-          userRole: "viewer"
+          userRole: "viewer",
         });
       } else {
         // Create new subscription
@@ -167,11 +169,11 @@ const BusinessDetails: React.FC = () => {
           userId: userRelationship.currentUserId,
           subscribedAt: new Date().toISOString(),
         });
-        
+
         setUserRelationship({
           ...userRelationship,
           isSubscribed: true,
-          userRole: "subscriber"
+          userRole: "subscriber",
         });
       }
     } catch (error) {
@@ -183,12 +185,14 @@ const BusinessDetails: React.FC = () => {
     if (!status) return {};
 
     return {
-      backgroundColor: BUSINESS_STATUS_COLOR_MAPPING[status] || BUSINESS_STATUS_COLOR_MAPPING.UNKNOWN
+      backgroundColor:
+        BUSINESS_STATUS_COLOR_MAPPING[status] ||
+        BUSINESS_STATUS_COLOR_MAPPING.UNKNOWN,
     };
   };
-  
+
   const getUserBadge = () => {
-    switch(userRelationship.userRole) {
+    switch (userRelationship.userRole) {
       case "owner":
         return (
           <Chip
@@ -330,7 +334,9 @@ const BusinessDetails: React.FC = () => {
                   "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.8)" },
                 }}
                 onClick={toggleSubscription}
-                title={userRelationship.isSubscribed ? "Unsubscribe" : "Subscribe"}
+                title={
+                  userRelationship.isSubscribed ? "Unsubscribe" : "Subscribe"
+                }
               >
                 {userRelationship.isSubscribed ? (
                   <FavoriteIcon sx={{ color: "#f44336" }} />
@@ -391,14 +397,14 @@ const BusinessDetails: React.FC = () => {
                 />
               )}
             </Typography>
-            
-            <Chip 
+
+            <Chip
               label={business.status || "UNKNOWN"}
               size="small"
               sx={getStatusChipStyles(business.status)}
             />
           </Box>
-          
+
           {/* Last updated date */}
           {business.updatedAt && (
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -410,9 +416,17 @@ const BusinessDetails: React.FC = () => {
           {!userRelationship.isOwner && userRelationship.currentUserId && (
             <Box sx={{ mb: 2 }}>
               <Button
-                variant={userRelationship.isSubscribed ? "contained" : "outlined"}
+                variant={
+                  userRelationship.isSubscribed ? "contained" : "outlined"
+                }
                 size="small"
-                startIcon={userRelationship.isSubscribed ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                startIcon={
+                  userRelationship.isSubscribed ? (
+                    <FavoriteIcon />
+                  ) : (
+                    <FavoriteBorderIcon />
+                  )
+                }
                 onClick={toggleSubscription}
                 sx={{ mb: 1 }}
               >
@@ -440,7 +454,8 @@ const BusinessDetails: React.FC = () => {
                   <span style={{ fontWeight: "bold" }}>you</span>
                 ) : (
                   <a href={`/admin/users/${business.user.id}`}>
-                    {business.user?.firstName || "N/A"} {business.user?.lastName || "N/A"}
+                    {business.user?.firstName || "N/A"}{" "}
+                    {business.user?.lastName || "N/A"}
                   </a>
                 )}
               </Typography>
@@ -483,76 +498,88 @@ const BusinessDetails: React.FC = () => {
           </Typography>
 
           <Divider sx={{ my: 2 }} />
-          
+
           {/* Owner Posts Section */}
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              mb: 2
+              mb: 2,
             }}
           >
             <Typography variant="h6" fontWeight="bold">
               Recent Updates
             </Typography>
-            
+
             {userRelationship.isOwner && (
               <Button variant="contained" size="small">
                 New Post
               </Button>
             )}
           </Box>
-          
-          {business.businessOwnerPosts && business.businessOwnerPosts.length > 0 ? (
+
+          {business.businessOwnerPosts &&
+          business.businessOwnerPosts.length > 0 ? (
             <Box sx={{ mb: 3 }}>
-              {/* {business.businessOwnerPosts.map((post) => (
+              {business.businessOwnerPosts.map((post) => (
                 <Paper key={post.id} sx={{ p: 2, mb: 2, borderRadius: "8px" }}>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                    <Avatar 
-                      src={post.user?.profilePhoto} 
+                    <Avatar
+                      src={post.user?.profilePhoto}
                       sx={{ width: 32, height: 32, mr: 1 }}
                     >
-                      {post.user?.firstName?.charAt(0) || post.user?.username?.charAt(0) || "?"}
+                      {post.user?.firstName?.charAt(0) ||
+                        post.user?.username?.charAt(0) ||
+                        "?"}
                     </Avatar>
                     <Box>
                       <Typography variant="subtitle2">
                         {post.user?.firstName} {post.user?.lastName}
-                        {post.user?.username && 
-                          <Typography component="span" variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
+                        {post.user?.username && (
+                          <Typography
+                            component="span"
+                            variant="caption"
+                            sx={{ ml: 1, color: "text.secondary" }}
+                          >
                             @{post.user.username}
                           </Typography>
-                        }
+                        )}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {formatDate(post.createdAt)}
+                        {formatDate(post.createdAt || "")}
                       </Typography>
                     </Box>
                   </Box>
-                  
+
                   <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
                     {post.content}
                   </Typography>
-                  
+
                   {post.images && post.images.length > 0 && (
-                    <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    <Box
+                      sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}
+                    >
                       {post.images.map((img, idx) => (
-                        <Box 
+                        <Box
                           key={idx}
                           component="img"
                           src={img}
-                          sx={{ 
-                            width: post.images.length === 1 ? "100%" : "calc(50% - 4px)",
-                            borderRadius: "4px", 
-                            maxHeight: "200px", 
-                            objectFit: "cover" 
+                          sx={{
+                            width:
+                              post.images && post.images.length === 1
+                                ? "100%"
+                                : "calc(50% - 4px)",
+                            borderRadius: "4px",
+                            maxHeight: "200px",
+                            objectFit: "cover",
                           }}
                         />
                       ))}
                     </Box>
                   )}
                 </Paper>
-              ))} */}
+              ))}
             </Box>
           ) : (
             <Box
@@ -563,7 +590,7 @@ const BusinessDetails: React.FC = () => {
                 height: "100px",
                 bgcolor: "#f5f5f5",
                 borderRadius: "8px",
-                mb: 3
+                mb: 3,
               }}
             >
               <Typography color="text.secondary">No updates yet</Typography>
@@ -663,13 +690,13 @@ const BusinessDetails: React.FC = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              mb: 2
+              mb: 2,
             }}
           >
             <Typography variant="h6" fontWeight="bold">
               Products
             </Typography>
-            
+
             {userRelationship.isOwner && (
               <Button variant="contained" size="small">
                 Add Product
@@ -681,37 +708,60 @@ const BusinessDetails: React.FC = () => {
             <Grid container spacing={2} sx={{ mb: 3 }}>
               {business.businessProducts.map((product) => (
                 <Grid item xs={12} sm={6} key={product.id}>
-                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Card
+                    sx={{
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
                     <CardMedia
                       component="img"
                       height="140"
                       image={product.productImage}
                       alt={product.productName}
-                      sx={{ objectFit: 'cover' }}
+                      sx={{ objectFit: "cover" }}
                     />
                     <CardContent sx={{ flexGrow: 1 }}>
-                      <Box sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start'
-                      }}>
-                        <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'medium' }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <Typography
+                          gutterBottom
+                          variant="h6"
+                          component="div"
+                          sx={{ fontWeight: "medium" }}
+                        >
                           {product.productName}
                         </Typography>
-                        <Typography variant="subtitle1" color="primary" fontWeight="bold">
+                        <Typography
+                          variant="subtitle1"
+                          color="primary"
+                          fontWeight="bold"
+                        >
                           ${product.price.toFixed(2)}
                         </Typography>
                       </Box>
-                      
-                      {product.productDescription && product.productDescription.map((desc, idx) => (
-                        <Typography key={idx} variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                          {desc}
-                        </Typography>
-                      ))}
-                      
-                      <Button 
-                        variant="outlined" 
-                        size="small" 
+
+                      {product.productDescription &&
+                        product.productDescription.map((desc, idx) => (
+                          <Typography
+                            key={idx}
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mt: 1 }}
+                          >
+                            {desc}
+                          </Typography>
+                        ))}
+
+                      <Button
+                        variant="outlined"
+                        size="small"
                         startIcon={<ShoppingCartIcon />}
                         sx={{ mt: 2 }}
                       >
@@ -731,10 +781,12 @@ const BusinessDetails: React.FC = () => {
                 height: "100px",
                 bgcolor: "#f5f5f5",
                 borderRadius: "8px",
-                mb: 3
+                mb: 3,
               }}
             >
-              <Typography color="text.secondary">No products available</Typography>
+              <Typography color="text.secondary">
+                No products available
+              </Typography>
             </Box>
           )}
 

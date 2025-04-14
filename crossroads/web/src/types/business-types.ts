@@ -12,6 +12,7 @@ export type BusinessUser = {
   username: string;
   firstName: string;
   lastName: string;
+  profilePhoto?: string;
 };
 
 export type Location = {
@@ -31,6 +32,7 @@ export type BusinessLocation = {
 };
 
 export type ResolvedProduct = {
+  id: string;
   businessId: string;
   productName: string;
   productDescription: string[];
@@ -39,7 +41,6 @@ export type ResolvedProduct = {
   updatedAt?: string;
   price: number;
 };
-
 
 export type Product = {
   id: string, 
@@ -60,8 +61,29 @@ export type BusinessOwnerPost = {
   images?: string[];
   createdAt?: string;
   updatedAt?: string;
+  user?: BusinessUser; // Add the user reference to match the data model
 };
 
+export type Review = {
+  id: string;
+  businessId: string;
+  userId: string;
+  rating: number;
+  text?: string;
+  images?: string[];
+  isPublic?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  user?: BusinessUser;
+};
+
+export type UserBusinessSubscription = {
+  id: string;
+  userId: string;
+  businessId: string;
+  subscribedAt: string;
+  user?: BusinessUser;
+};
 
 export type ResolvedBusiness = {
   id: string;
@@ -81,10 +103,10 @@ export type ResolvedBusiness = {
   createdAt?: string;
   updatedAt?: string;
   businessProducts?: Product[];
-  businessOwnerPosts: BusinessOwnerPost[]
+  businessOwnerPosts?: BusinessOwnerPost[];
+  reviews?: Review[];
+  subscribers?: UserBusinessSubscription[];
 };
-
-
 
 export type ResolvedBusinessEx = ResolvedBusiness & {
   user: BusinessUser | null;
@@ -102,7 +124,6 @@ export type CreateBusinessBase = {
   profilePhoto?: string;
   isMinorityOwned?: boolean;
 };
-
 
 export type CreateBusinessAsUserFormData = CreateBusinessBase;
 
