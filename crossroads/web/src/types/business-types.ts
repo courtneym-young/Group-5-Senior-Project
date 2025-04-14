@@ -42,6 +42,7 @@ export type ResolvedProduct = {
 
 
 export type Product = {
+  id: string, 
   businessId: string;
   productName: string;
   productDescription: string[];
@@ -50,6 +51,17 @@ export type Product = {
   updatedAt?: string;
   price: number;
 };
+
+export type BusinessOwnerPost = {
+  id: string;
+  userId: string;
+  businessId: string;
+  content: string;
+  images?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 
 export type ResolvedBusiness = {
   id: string;
@@ -69,7 +81,10 @@ export type ResolvedBusiness = {
   createdAt?: string;
   updatedAt?: string;
   businessProducts?: Product[];
+  businessOwnerPosts: BusinessOwnerPost[]
 };
+
+
 
 export type ResolvedBusinessEx = ResolvedBusiness & {
   user: BusinessUser | null;

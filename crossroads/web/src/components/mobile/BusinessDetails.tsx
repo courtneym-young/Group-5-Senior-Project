@@ -8,6 +8,11 @@ import {
   CircularProgress,
   IconButton,
   Avatar,
+  Card,
+  CardContent,
+  CardMedia,
+  Grid,
+  Paper,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import MobileLayout from "./shared/MobileLayout";
@@ -22,6 +27,8 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ImageIcon from "@mui/icons-material/Image";
 import ShareIcon from "@mui/icons-material/Share";
 import BusinessIcon from "@mui/icons-material/Business";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../amplify/data/resource";
 import { getFileUrl } from "../../helpers/storageHelpers";
@@ -42,6 +49,7 @@ interface UserRelationship {
   isOwner: boolean;
   isSubscribed: boolean;
   currentUserId: string | null;
+  userRole: "owner" | "subscriber" | "viewer";
 }
 
 const BusinessDetails: React.FC = () => {
@@ -52,13 +60,13 @@ const BusinessDetails: React.FC = () => {
   const [userRelationship, setUserRelationship] = useState<UserRelationship>({
     isOwner: false,
     isSubscribed: false,
-    currentUserId: null
+    currentUserId: null,
+    userRole: "viewer"
   });
   
   // Use the enhanced hook to fetch business details with all related data
   const { business, loading, error } = useFetchBusinessById(businessId || '');
-  console.log(business)
-
+  
   // Check if the current user is the owner or subscribed to this business
   useEffect(() => {
     const determineUserRelationship = async () => {
@@ -90,10 +98,16 @@ const BusinessDetails: React.FC = () => {
           
           const isSubscribed = subscriptions.data.length > 0;
           
+          // Determine user role
+          let userRole: "owner" | "subscriber" | "viewer" = "viewer";
+          if (isOwner) userRole = "owner";
+          else if (isSubscribed) userRole = "subscriber";
+          
           setUserRelationship({
             isOwner,
             isSubscribed,
-            currentUserId
+            currentUserId,
+            userRole
           });
         }
       } catch (err) {
@@ -140,6 +154,12 @@ const BusinessDetails: React.FC = () => {
             id: subscriptions.data[0].id,
           });
         }
+        
+        setUserRelationship({
+          ...userRelationship,
+          isSubscribed: false,
+          userRole: "viewer"
+        });
       } else {
         // Create new subscription
         await dataClient.models.UserBusinessSubscription.create({
@@ -147,12 +167,13 @@ const BusinessDetails: React.FC = () => {
           userId: userRelationship.currentUserId,
           subscribedAt: new Date().toISOString(),
         });
+        
+        setUserRelationship({
+          ...userRelationship,
+          isSubscribed: true,
+          userRole: "subscriber"
+        });
       }
-
-      setUserRelationship({
-        ...userRelationship,
-        isSubscribed: !userRelationship.isSubscribed
-      });
     } catch (error) {
       console.error("Error toggling subscription:", error);
     }
@@ -164,6 +185,51 @@ const BusinessDetails: React.FC = () => {
     return {
       backgroundColor: BUSINESS_STATUS_COLOR_MAPPING[status] || BUSINESS_STATUS_COLOR_MAPPING.UNKNOWN
     };
+  };
+  
+  const getUserBadge = () => {
+    switch(userRelationship.userRole) {
+      case "owner":
+        return (
+          <Chip
+            icon={<BusinessIcon />}
+            label="Owner"
+            size="small"
+            sx={{
+              backgroundColor: "#FFD700", // Gold color for owners
+              color: "#333",
+              fontWeight: "bold",
+            }}
+          />
+        );
+      case "subscriber":
+        return (
+          <Chip
+            icon={<FavoriteIcon />}
+            label="Subscriber"
+            size="small"
+            sx={{
+              backgroundColor: "#8c9eff", // Purple/blue for subscribers
+              color: "white",
+              fontWeight: "bold",
+            }}
+          />
+        );
+      case "viewer":
+      default:
+        return (
+          <Chip
+            icon={<VisibilityIcon />}
+            label="Viewer"
+            size="small"
+            sx={{
+              backgroundColor: "#e0e0e0", // Gray for viewers
+              color: "#555",
+              fontWeight: "medium",
+            }}
+          />
+        );
+    }
   };
 
   if (loading) {
@@ -234,7 +300,7 @@ const BusinessDetails: React.FC = () => {
             <ImageIcon fontSize="large" sx={{ color: "#9e9e9e" }} />
           )}
 
-          {/* User relationship indicator */}
+          {/* User badge */}
           <Box
             sx={{
               position: "absolute",
@@ -244,18 +310,7 @@ const BusinessDetails: React.FC = () => {
               gap: 1,
             }}
           >
-            {userRelationship.isOwner && (
-              <Chip
-                icon={<BusinessIcon />}
-                label="You own this"
-                size="small"
-                sx={{
-                  backgroundColor: "#4caf50",
-                  color: "white",
-                  fontWeight: "bold",
-                }}
-              />
-            )}
+            {getUserBadge()}
           </Box>
 
           {/* Action buttons overlay */}
@@ -354,14 +409,15 @@ const BusinessDetails: React.FC = () => {
           {/* Subscription status for non-owners */}
           {!userRelationship.isOwner && userRelationship.currentUserId && (
             <Box sx={{ mb: 2 }}>
-              <Chip
-                icon={userRelationship.isSubscribed ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                label={userRelationship.isSubscribed ? "Subscribed" : "Not subscribed"}
+              <Button
+                variant={userRelationship.isSubscribed ? "contained" : "outlined"}
                 size="small"
-                color={userRelationship.isSubscribed ? "primary" : "default"}
-                sx={{ mb: 1 }}
+                startIcon={userRelationship.isSubscribed ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                 onClick={toggleSubscription}
-              />
+                sx={{ mb: 1 }}
+              >
+                {userRelationship.isSubscribed ? "Subscribed" : "Subscribe"}
+              </Button>
               {userRelationship.isSubscribed && (
                 <Typography variant="body2" color="text.secondary">
                   You will receive updates from this business.
@@ -425,6 +481,94 @@ const BusinessDetails: React.FC = () => {
           <Typography variant="body1" sx={{ mb: 3 }}>
             {business.description || "No description available."}
           </Typography>
+
+          <Divider sx={{ my: 2 }} />
+          
+          {/* Owner Posts Section */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">
+              Recent Updates
+            </Typography>
+            
+            {userRelationship.isOwner && (
+              <Button variant="contained" size="small">
+                New Post
+              </Button>
+            )}
+          </Box>
+          
+          {business.businessOwnerPosts && business.businessOwnerPosts.length > 0 ? (
+            <Box sx={{ mb: 3 }}>
+              {/* {business.businessOwnerPosts.map((post) => (
+                <Paper key={post.id} sx={{ p: 2, mb: 2, borderRadius: "8px" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                    <Avatar 
+                      src={post.user?.profilePhoto} 
+                      sx={{ width: 32, height: 32, mr: 1 }}
+                    >
+                      {post.user?.firstName?.charAt(0) || post.user?.username?.charAt(0) || "?"}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="subtitle2">
+                        {post.user?.firstName} {post.user?.lastName}
+                        {post.user?.username && 
+                          <Typography component="span" variant="caption" sx={{ ml: 1, color: "text.secondary" }}>
+                            @{post.user.username}
+                          </Typography>
+                        }
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {formatDate(post.createdAt)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  
+                  <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                    {post.content}
+                  </Typography>
+                  
+                  {post.images && post.images.length > 0 && (
+                    <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                      {post.images.map((img, idx) => (
+                        <Box 
+                          key={idx}
+                          component="img"
+                          src={img}
+                          sx={{ 
+                            width: post.images.length === 1 ? "100%" : "calc(50% - 4px)",
+                            borderRadius: "4px", 
+                            maxHeight: "200px", 
+                            objectFit: "cover" 
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                </Paper>
+              ))} */}
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100px",
+                bgcolor: "#f5f5f5",
+                borderRadius: "8px",
+                mb: 3
+              }}
+            >
+              <Typography color="text.secondary">No updates yet</Typography>
+            </Box>
+          )}
 
           <Divider sx={{ my: 2 }} />
 
@@ -513,7 +657,7 @@ const BusinessDetails: React.FC = () => {
 
           <Divider sx={{ my: 2 }} />
 
-          {/* Products section placeholder */}
+          {/* Products section */}
           <Box
             sx={{
               display: "flex",
@@ -533,18 +677,66 @@ const BusinessDetails: React.FC = () => {
             )}
           </Box>
 
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100px",
-              bgcolor: "#f5f5f5",
-              borderRadius: "8px",
-            }}
-          >
-            <Typography color="text.secondary">Products coming soon</Typography>
-          </Box>
+          {business.businessProducts && business.businessProducts.length > 0 ? (
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              {business.businessProducts.map((product) => (
+                <Grid item xs={12} sm={6} key={product.id}>
+                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <CardMedia
+                      component="img"
+                      height="140"
+                      image={product.productImage}
+                      alt={product.productName}
+                      sx={{ objectFit: 'cover' }}
+                    />
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start'
+                      }}>
+                        <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'medium' }}>
+                          {product.productName}
+                        </Typography>
+                        <Typography variant="subtitle1" color="primary" fontWeight="bold">
+                          ${product.price.toFixed(2)}
+                        </Typography>
+                      </Box>
+                      
+                      {product.productDescription && product.productDescription.map((desc, idx) => (
+                        <Typography key={idx} variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                          {desc}
+                        </Typography>
+                      ))}
+                      
+                      <Button 
+                        variant="outlined" 
+                        size="small" 
+                        startIcon={<ShoppingCartIcon />}
+                        sx={{ mt: 2 }}
+                      >
+                        Buy Now
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100px",
+                bgcolor: "#f5f5f5",
+                borderRadius: "8px",
+                mb: 3
+              }}
+            >
+              <Typography color="text.secondary">No products available</Typography>
+            </Box>
+          )}
 
           <Divider sx={{ my: 2 }} />
 
