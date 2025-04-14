@@ -43,13 +43,22 @@ const ReviewForm: React.FC<{
       setSubmitting(true);
       
       // Create the review in the database
-      await dataClient.models.Review.create({
+
+      console.log({
         businessId,
         userId,
         rating: rating || 0,
         text: reviewText,
         isPublic: true,
-        createdAt: new Date().toISOString(),
+      })
+
+      await dataClient.models.Review.create({
+        businessId,
+        userId,
+        rating: rating || 0,
+        text: reviewText,
+        images: [],
+        isPublic: true,
       });
       
       setSubmitting(false);
@@ -124,8 +133,8 @@ const ReviewsSection: React.FC<{
   business: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userRelationship: any;
-  // refreshBusiness?: () => void;
-}> = ({ business, userRelationship }) => {
+  refreshBusiness: () => void;
+}> = ({ business, userRelationship, refreshBusiness }) => {
   const [openReviewForm, setOpenReviewForm] = useState(false);
   
   const handleOpenReviewForm = () => {
@@ -134,12 +143,9 @@ const ReviewsSection: React.FC<{
   
   const handleCloseReviewForm = () => {
     setOpenReviewForm(false);
+    refreshBusiness();
   };
   
-  // const handleReviewSubmitted = () => {
-  //   // Refresh business data to include the new review
-  //   refreshBusiness();
-  // };
 
   return (
     <>

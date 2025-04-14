@@ -74,7 +74,7 @@ const BusinessDetails: React.FC = () => {
   });
 
   // Use the enhanced hook to fetch business details with all related data
-  const { business, loading, error } = useFetchBusinessById(businessId || "");
+  const { business, loading, error, refetch } = useFetchBusinessById(businessId || "");
 
   // Check if the current user is the owner or subscribed to this business
   useEffect(() => {
@@ -872,14 +872,17 @@ const BusinessDetails: React.FC = () => {
           <ReviewsSection
             business={business}
             userRelationship={userRelationship}
-            // refreshBusiness={refreshBusinessData}
+            refreshBusiness={refetch}
           />
           {userRelationship.isOwner && (
             <ProductForm
               userId={userRelationship.currentUserId || ""}
               businessId={business.id}
               open={openProductForm}
-              onClose={handleCloseProductForm}
+              onClose={() => {
+                handleCloseProductForm();
+                refetch(); // Refresh data after form closes
+              }}
             />
           )}
 
@@ -894,7 +897,10 @@ const BusinessDetails: React.FC = () => {
                 profilePhoto: business.user?.profilePhoto,
               }}
               open={openPostForm}
-              onClose={handleClosePostForm}
+              onClose={() => {
+                handleClosePostForm();
+                refetch(); // Refresh data after form closes
+              }}
             />
           )}
         </Box>

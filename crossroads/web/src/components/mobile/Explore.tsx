@@ -141,14 +141,12 @@ const Explore: React.FC = () => {
         
         if (user && isMounted) {
           // Fetch user's subscriptions
-          const { data: subscriptions } = await dataClient.models.UserBusinessSubscription.list({
-            filter: {
-              userId: { eq: user.userId }
-            }
-          });
+          const { data: allSubscriptions } = await dataClient.models.UserBusinessSubscription.list();
+
           
           if (isMounted) {
-            setUserSubscriptions(subscriptions as UserSubscription[]);
+            const userSubscriptions = allSubscriptions.filter(sub => sub.owner === user.userId);
+            setUserSubscriptions(userSubscriptions as UserSubscription[])
             setSubscriptionsLoaded(true);
           }
         } else if (isMounted) {
