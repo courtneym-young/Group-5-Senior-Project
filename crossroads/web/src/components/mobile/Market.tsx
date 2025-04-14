@@ -15,15 +15,15 @@ import { getFileUrl } from "../../helpers/storageHelpers";
 
 // Define a type for product
 interface ProductWithImage extends Record<string, unknown> {
+  userId: string
   businessId: string;
   productName: string;
-  productDescription: string[];
+  productDescription: string;
   productImage: string;
   createdAt?: string;
   updatedAt?: string;
   price: number;
 }
-
 
 const Market: React.FC = () => {
   // Data fetching and processing state

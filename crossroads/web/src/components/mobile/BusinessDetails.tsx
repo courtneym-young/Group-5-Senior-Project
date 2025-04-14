@@ -108,8 +108,11 @@ const BusinessDetails: React.FC = () => {
 
           // Determine user role
           let userRole: "owner" | "subscriber" | "viewer" = "viewer";
-          if (isOwner) userRole = "owner";
-          else if (isSubscribed) userRole = "subscriber";
+          if (isOwner) {
+            userRole = "owner";
+          } else if (isSubscribed) {
+                           userRole = "subscriber";
+                         }
 
           setUserRelationship({
             isOwner,
@@ -161,7 +164,9 @@ const BusinessDetails: React.FC = () => {
   }, [business]);
 
   const toggleSubscription = async () => {
-    if (!business || !userRelationship.currentUserId) return;
+    if (!business || !userRelationship.currentUserId) {
+      return;
+    }
 
     try {
       if (userRelationship.isSubscribed) {
