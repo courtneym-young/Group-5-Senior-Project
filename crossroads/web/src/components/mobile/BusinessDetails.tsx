@@ -598,7 +598,37 @@ const BusinessDetails: React.FC = () => {
             <Box sx={{ mb: 3 }}>
               {business.businessOwnerPosts.map((post) => (
                 <Paper key={post.id} sx={{ p: 2, mb: 2, borderRadius: "8px" }}>
-                  {/* ... [post header remains the same] */}
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                    <Avatar
+                      src={post.user?.profilePhoto}
+                      sx={{ width: 32, height: 32, mr: 1 }}
+                    >
+                      {post.user?.firstName?.charAt(0) ||
+                        post.user?.username?.charAt(0) ||
+                        "?"}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="subtitle2">
+                        {post.user?.firstName} {post.user?.lastName}
+                        {post.user?.username && (
+                          <Typography
+                            component="span"
+                            variant="caption"
+                            sx={{ ml: 1, color: "text.secondary" }}
+                          >
+                            @{post.user.username}
+                          </Typography>
+                        )}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {formatDate(post.createdAt || "")}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                    {post.content}
+                  </Typography>
 
                   {postImages[post.id] && postImages[post.id].length > 0 && (
                     <Box

@@ -11,11 +11,11 @@ import MobileLayout from "./shared/MobileLayout";
 import ImageIcon from "@mui/icons-material/Image";
 import { useFetchProductList } from "../../helpers/businessHelpers";
 import { getFileUrl } from "../../helpers/storageHelpers";
-// import { BUSINESS_STATUS_COLOR_MAPPING } from "../../config/StyleConfig";
 
-// Define a type for product
-interface ProductWithImage extends Record<string, unknown> {
-  userId: string
+// Define a type for product with image URL
+interface ProductWithImage {
+  id: string;
+  userId: string;
   businessId: string;
   productName: string;
   productDescription: string;
@@ -23,6 +23,7 @@ interface ProductWithImage extends Record<string, unknown> {
   createdAt?: string;
   updatedAt?: string;
   price: number;
+  imageUrl?: string; // Added this field for the loaded image URL
 }
 
 const Market: React.FC = () => {
@@ -31,8 +32,7 @@ const Market: React.FC = () => {
   const [products, setProducts] = useState<ProductWithImage[]>([]);
   const [imageLoading, setImageLoading] = useState(true);
 
-
-  // Process businesses and load images
+  // Process products and load images
   useEffect(() => {
     const loadProductImages = async () => {
       if (!rawProducts || rawProducts.length === 0) {
@@ -46,15 +46,15 @@ const Market: React.FC = () => {
         const productsWithImages = await Promise.all(
           rawProducts.map(async (product) => {
             // Clone the product object
-            const productWithImage = {... product} as ProductWithImage;
+            const productWithImage: ProductWithImage = { ...product };
             
-            // If product has a photo path, fetch the URL
+            // If product has an image path, fetch the URL
             if (product.productImage) {
               try {
                 const imageUrl = await getFileUrl(product.productImage);
                 productWithImage.imageUrl = imageUrl;
               } catch (imageError) {
-                console.error(`Error loading image for business ${product.productName}:`, imageError);
+                console.error(`Error loading image for product ${product.productName}:`, imageError);
                 // Keep the product but without image URL
               }
             }
@@ -76,7 +76,7 @@ const Market: React.FC = () => {
 
   if (error) {
     return (
-      <MobileLayout title="Market" >
+      <MobileLayout title="Market">
         <Box sx={{ padding: "20px", textAlign: "center" }}>
           <Typography color="error">
             Error loading products: {error}
@@ -105,59 +105,59 @@ const Market: React.FC = () => {
         />
       </Box>
 
-      {/* Scrollable Business List */}
+      {/* Scrollable Product List */}
       <Box sx={{ flex: 1, overflowY: "auto" }}>
-      {loading || imageLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", padding: "20px" }}>
-          <CircularProgress />
-        </Box>
-      ) : products.length > 0 ? (
-        products.map((product) => (
-          <Box sx={{ padding: "10px" }}>
-            {/* Grey Box with Image or Image Icon */}
-            <Box
-              sx={{
-                width: "100%",
-                height: "300px",
-                backgroundColor: "#e0e0e0",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                borderRadius: "12px",
-                backgroundImage: product.productImage ? `url(${product.productImage})` : "none",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                position: "relative", // For positioning the verified badge
-              }}
-            >
-              {!product.productImage && (
-                <ImageIcon fontSize="large" sx={{ color: "#9e9e9e" }} />
-              )}
-            </Box>
-            
-            {/* Business Details */}
-            <Box sx={{ padding: "10px" }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography fontWeight="bold">{product.productName}</Typography>
-              </Box>
-              <Typography variant="body2" color="text.secondary">
-                {product.price || "No description available"}
-                {product.productDescription || "No description available"}
-              </Typography>              
-            </Box>
+        {loading || imageLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", padding: "20px" }}>
+            <CircularProgress />
           </Box>
-        ))
-      ) : (
-        <Box sx={{ padding: "20px", textAlign: "center" }}>
-          <Typography align="center" sx={{ mt: 2, color: "#9e9e9e" }}>
-            No results found.
-          </Typography>
-        </Box>
-      )}
-    </Box>
-    
+        ) : products.length > 0 ? (
+          products.map((product) => (
+            <Box key={product.id} sx={{ padding: "10px" }}>
+              {/* Grey Box with Image or Image Icon */}
+              <Box
+                sx={{
+                  width: "100%",
+                  height: "300px",
+                  backgroundColor: "#e0e0e0",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: "12px",
+                  backgroundImage: product.imageUrl ? `url(${product.imageUrl})` : "none",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              >
+                {!product.imageUrl && (
+                  <ImageIcon fontSize="large" sx={{ color: "#9e9e9e" }} />
+                )}
+              </Box>
+              
+              {/* Product Details */}
+              <Box sx={{ padding: "10px" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography fontWeight="bold">{product.productName}</Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary">
+                  ${product.price.toFixed(2)}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {product.productDescription || "No description available"}
+                </Typography>              
+              </Box>
+            </Box>
+          ))
+        ) : (
+          <Box sx={{ padding: "20px", textAlign: "center" }}>
+            <Typography align="center" sx={{ mt: 2, color: "#9e9e9e" }}>
+              No results found.
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </MobileLayout>
-    );
-    };
+  );
+};
 
-    export default Market;
+export default Market;
