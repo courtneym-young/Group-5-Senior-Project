@@ -27,6 +27,7 @@ const schema = a
         reviews: a.hasMany("Review", "userId"), // A user can have many reviews (One-to-Many)
         businessOwnerPosts: a.hasMany("BusinessOwnerPost", "userId"), // A user can create multiple detailed posts (One-to-Many)
         subscriptions: a.hasMany("UserBusinessSubscription", "userId"), // A user can subscribe to multiple businesses (Many-to-Many)
+        products: a.hasMany("Product", "userId"), // A user can create multiple products
         businesses: a.hasMany("Business", "userId"), // A user can own multiple businesses (One-to-Many)
       })
       .authorization((allow) => [
@@ -47,7 +48,7 @@ const schema = a
         business: a.belongsTo("Business", "businessId") // Relate to the business
       })
       .authorization((allow) => [
-        allow.owner().to(["create", "delete"]), // Users can manage their own subscriptions
+        allow.owner().to(["create", "read", "update", "delete"]), // Users can manage their own subscriptions
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
         allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
         allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
@@ -65,7 +66,28 @@ const schema = a
         business: a.belongsTo("Business", "businessId") // Relate to the business
       })
       .authorization((allow) => [
-        allow.owner().to(["create", "update", "delete"]), // Users can manage their own posts
+        allow.owner().to(["create", "read", "update", "delete"]), // Users can manage their own posts
+        allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
+        allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
+        allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
+      ]),
+
+      // A business can have many products.
+      Product: a
+      .model({
+        userId: a.string().required(),
+        businessId: a.string().required(), // References the business the post is for
+        productName: a.string().required(),
+        productDescription: a.string(),
+        productImage: a.string(),
+        createdAt: a.datetime(),
+        updatedAt: a.datetime(),
+        price: a.float(),
+        user: a.belongsTo("User", "userId"), // Relate to user who created it
+        business: a.belongsTo("Business", "businessId") // Relate to the business
+      })
+      .authorization((allow) => [
+        allow.owner().to(["create", "read", "update", "delete"]), // Businesses can manage their own products
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
         allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
         allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
@@ -98,11 +120,12 @@ const schema = a
         updatedAt: a.datetime(), // UpdatedAt timestamp
         user: a.belongsTo("User", "userId"), // Connected user that belongs
         businessOwnerPosts: a.hasMany("BusinessOwnerPost", "businessId"), // Business can have many posts
+        businessProducts: a.hasMany("Product", "businessId"), // Business can have many products
         reviews: a.hasMany("Review", "businessId"), // Business can have many reviews
         subscribers: a.hasMany("UserBusinessSubscription", "businessId") // Business can have many subscribers
       })
       .authorization((allow) => [
-        allow.owner().to(["create", "update", "delete"]), // Business owners can manage their own businesses
+        allow.owner().to(["create", "read", "update", "delete"]), // Business owners can manage their own businesses
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
         allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
         allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access
@@ -122,7 +145,7 @@ const schema = a
       })
       
       .authorization((allow) => [
-        allow.owner().to(["create", "update", "delete"]), // Users can manage their own reviews
+        allow.owner().to(["create", "read", "update", "delete"]), // Users can manage their own reviews
         allow.groups(["ADMINS"]).to(["create", "read", "update", "delete"]), // Admins have full access
         allow.groups(["OWNERS"]).to(["create", "read", "update", "delete"]), // Owner has full access
         allow.groups(["CUSTOMERS"]).to(["create", "read", "update", "delete"]), // Customer has full access

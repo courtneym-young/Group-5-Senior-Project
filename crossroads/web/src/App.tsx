@@ -9,11 +9,10 @@ import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 // Phone Views
 import Explore from "./components/mobile/Explore";
-import Search from "./components/mobile/Search";
 import AddBusiness from "./components/mobile/AddBusiness";
-import Messages from "./components/mobile/Messages";
 import Market from "./components/mobile/Market";
 import Profile from "./components/mobile/Profile";
+import BusinessDetails from "./components/mobile/BusinessDetails";
 
 // Admin Pages
 import AdminPage from "./pages/Admin/AdminPage";
@@ -62,11 +61,10 @@ function App() {
     return (
         <Routes>
           <Route path="/" element={<Explore />} />
-          <Route path="/search" element={<Search />} />
           <Route path="/add-business" element={<AddBusiness />} />
-          <Route path="/messages" element={<Messages />} />
           <Route path="/market" element={<Market />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/business/:businessId" element={<BusinessDetails />} />
           <Route path="*" element={<PageNotFoundPage />} />
         </Routes>
     );

@@ -1,9 +1,9 @@
 import React from "react";
 import { Box, IconButton } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
-import SearchIcon from "@mui/icons-material/Search";
+// import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
-import ChatIcon from "@mui/icons-material/Chat";
+// import ChatIcon from "@mui/icons-material/Chat";
 import StoreIcon from "@mui/icons-material/Store";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -37,24 +37,24 @@ const BottomNavigation: React.FC = () => {
       >
         <HomeIcon fontSize="medium" />
       </IconButton>
-      <IconButton 
+      {/* <IconButton 
         onClick={() => navigate("/search")} 
         color={isActive("/search") ? "primary" : "default"}
       >
         <SearchIcon fontSize="medium" />
-      </IconButton>
+      </IconButton> */}
       <IconButton 
         onClick={() => navigate("/add-business")} 
         color={isActive("/add-business") ? "primary" : "default"}
       >
         <AddIcon fontSize="medium" />
       </IconButton>
-      <IconButton 
+      {/* <IconButton 
         onClick={() => navigate("/messages")} 
         color={isActive("/messages") ? "primary" : "default"}
       >
         <ChatIcon fontSize="medium" />
-      </IconButton>
+      </IconButton> */}
       <IconButton 
         onClick={() => navigate("/market")} 
         color={isActive("/market") ? "primary" : "default"}
