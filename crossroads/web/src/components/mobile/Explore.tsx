@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Box, 
   Typography, 
@@ -22,11 +22,16 @@ import MobileLayout from "./shared/MobileLayout";
 import TuneIcon from "@mui/icons-material/Tune";
 import ImageIcon from "@mui/icons-material/Image";
 import VerifiedIcon from "@mui/icons-material/Verified";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
 import { IconButton } from "@mui/material";
 import { useFetchBusinessListEx } from "../../helpers/businessHelpers";
 import { getFileUrl } from "../../helpers/storageHelpers";
 import { useNavigate } from "react-router-dom";
-// import { BUSINESS_STATUS_COLOR_MAPPING } from "../../config/StyleConfig";
+import { generateClient } from "aws-amplify/data";
+import { getCurrentUser } from "aws-amplify/auth";
+import { type Schema } from "../../../amplify/data/resource";
+
+const dataClient = generateClient<Schema>();
 
 // Define a type for business with image URL
 interface BusinessWithImage extends Record<string, unknown> {
@@ -39,6 +44,11 @@ interface BusinessWithImage extends Record<string, unknown> {
   status?: string;
 }
 
+// Define a type for user subscription
+interface UserSubscription {
+  businessId: string;
+}
+
 const Explore: React.FC = () => {
   const navigate = useNavigate();
 
@@ -48,11 +58,17 @@ const Explore: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(true); // Default to showing only verified businesses
+  const [showSubscribedOnly, setShowSubscribedOnly] = useState(false); // New state for subscribed businesses filter
   
   // Data fetching and processing state
   const { businesses: rawBusinesses, loading, error } = useFetchBusinessListEx();
   const [businesses, setBusinesses] = useState<BusinessWithImage[]>([]);
-  const [imageLoading, setImageLoading] = useState(true);
+  const [imageLoading, setImageLoading] = useState(false); // Changed default to false
+  const [userSubscriptions, setUserSubscriptions] = useState<UserSubscription[]>([]);
+  const [subscriptionsLoaded, setSubscriptionsLoaded] = useState(false);
+  
+  // Combined loading state to prevent multiple flashes
+  const isLoading = loading || imageLoading || !subscriptionsLoaded;
 
   // Toggle the filter dialog
   const handleFilterClick = () => {
@@ -74,6 +90,7 @@ const Explore: React.FC = () => {
   const handleClearFilters = () => {
     setSelectedCategories([]);
     setShowVerifiedOnly(true); // Reset to default (verified only)
+    setShowSubscribedOnly(false); // Reset subscribed filter
     setFilterDialogOpen(false);
   };
 
@@ -103,6 +120,58 @@ const Explore: React.FC = () => {
     setShowVerifiedOnly(false);
   };
 
+  // Toggle subscribed only filter
+  const handleSubscribedOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setShowSubscribedOnly(event.target.checked);
+  };
+
+  // Remove subscribed only filter
+  const handleRemoveSubscribedOnly = () => {
+    setShowSubscribedOnly(false);
+  };
+
+  // Fetch user subscriptions once during initial component mount
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchUserSubscriptions = async () => {
+      try {
+        // Get the current authenticated user
+        const user = await getCurrentUser();
+        
+        if (user && isMounted) {
+          // Fetch user's subscriptions
+          const { data: subscriptions } = await dataClient.models.UserBusinessSubscription.list({
+            filter: {
+              userId: { eq: user.userId }
+            }
+          });
+          
+          if (isMounted) {
+            setUserSubscriptions(subscriptions as UserSubscription[]);
+            setSubscriptionsLoaded(true);
+          }
+        } else if (isMounted) {
+          // If no user, still mark as loaded
+          setSubscriptionsLoaded(true);
+        }
+      } catch (error) {
+        console.error("Error fetching user subscriptions:", error);
+        if (isMounted) {
+          setSubscriptionsLoaded(true); // Still mark as loaded so the UI can proceed
+        }
+      }
+    };
+
+    fetchUserSubscriptions();
+    console.log(userSubscriptions)
+    
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array to run only once on mount
+
   // Extract all unique categories from businesses
   useEffect(() => {
     if (rawBusinesses && rawBusinesses.length > 0) {
@@ -118,17 +187,20 @@ const Explore: React.FC = () => {
     }
   }, [rawBusinesses]);
 
-  // Process businesses and load images
+  // Process businesses and load images - optimize to avoid unnecessary fetches
   useEffect(() => {
+    let isMounted = true;
+    
     const loadBusinessImages = async () => {
       if (!rawBusinesses || rawBusinesses.length === 0) {
         setBusinesses([]);
-        setImageLoading(false);
         return;
       }
 
+      // Only set loading if we actually have businesses to process
+      if (isMounted) setImageLoading(true);
+      
       try {
-        setImageLoading(true);
         const businessesWithImages = await Promise.all(
           rawBusinesses.map(async (business) => {
             // Clone the business object
@@ -149,56 +221,79 @@ const Explore: React.FC = () => {
           })
         );
         
-        setBusinesses(businessesWithImages);
+        if (isMounted) {
+          setBusinesses(businessesWithImages);
+        }
       } catch (err) {
         console.error("Error processing business images:", err);
       } finally {
-        setImageLoading(false);
+        if (isMounted) {
+          setImageLoading(false);
+        }
       }
     };
 
     loadBusinessImages();
+
+    return () => {
+      isMounted = false;
+    };
   }, [rawBusinesses]);
 
+  // Memoize filtered businesses to prevent unnecessary re-renders
+  const filteredBusinesses = useMemo(() => {
+    if (isLoading) return [];
+    
+    return businesses.filter((business) => {
+      // Verified filter
+      if (showVerifiedOnly && business.status !== 'VERIFIED') {
+        return false;
+      }
+      
+      // Subscribed filter
+      if (showSubscribedOnly) {
+        const isSubscribed = userSubscriptions.some(
+          subscription => subscription.businessId === business.id
+        );
+        if (!isSubscribed) return false;
+      }
+      
+      // Category filter
+      if (selectedCategories.length > 0) {
+        const businessCategories = business?.category || [];
+        // Check if business has at least one of the selected categories
+        const hasSelectedCategory = selectedCategories.some(selectedCat => 
+          businessCategories.includes(selectedCat)
+        );
+        if (!hasSelectedCategory) return false;
+      }
+      
+      // Search term filter
+      if (!searchTerm.trim()) return true;
+      
+      // Check if business has required properties
+      const searchableValues = [
+        business?.name || '',
+        business?.description || '',
+        ...(Array.isArray(business?.category) ? business.category : [])
+      ];
+      
+      // Create a search string from name, description, and categories
+      const searchString = searchableValues
+        .filter(Boolean)  // Remove any undefined or null values
+        .join(" ")
+        .toLowerCase();
+      
+      return searchString.includes(searchTerm.toLowerCase());
+    });
+  }, [businesses, showVerifiedOnly, showSubscribedOnly, selectedCategories, searchTerm, userSubscriptions, isLoading]);
 
-  // Function to filter businesses based on search term, verified status, and selected categories
-  const filteredBusinesses = businesses.filter((business) => {
-    // Verified filter
-    if (showVerifiedOnly && business.status !== 'VERIFIED') {
-      return false;
-    }
-    
-    // Category filter
-    if (selectedCategories.length > 0) {
-      const businessCategories = business?.category || [];
-      // Check if business has at least one of the selected categories
-      const hasSelectedCategory = selectedCategories.some(selectedCat => 
-        businessCategories.includes(selectedCat)
-      );
-      if (!hasSelectedCategory) return false;
-    }
-    
-    // Search term filter
-    if (!searchTerm.trim()) return true;
-    
-    // Check if business has required properties
-    const searchableValues = [
-      business?.name || '',
-      business?.description || '',
-      ...(Array.isArray(business?.category) ? business.category : [])
-    ];
-    
-    // Create a search string from name, description, and categories
-    const searchString = searchableValues
-      .filter(Boolean)  // Remove any undefined or null values
-      .join(" ")
-      .toLowerCase();
-    
-    return searchString.includes(searchTerm.toLowerCase());
-  });
-
-  // Calculate the number of active filters
-  const activeFilterCount = selectedCategories.length + (showVerifiedOnly ? 1 : 0);
+  // Calculate the number of active filters - memoize to prevent unnecessary recalculations
+  const activeFilterCount = useMemo(() => {
+    return selectedCategories.length + 
+      (showVerifiedOnly ? 1 : 0) + 
+      (showSubscribedOnly ? 1 : 0);
+  }, [selectedCategories.length, showVerifiedOnly, showSubscribedOnly]);
 
   // Create a filter icon with a badge indicator when filters are active
   const filterIcon = (
@@ -226,6 +321,11 @@ const Explore: React.FC = () => {
       </Box>
     </IconButton>
   );
+
+  // Memoize the check for whether a business is subscribed to
+  const isBusinessSubscribed = (businessId: string) => {
+    return userSubscriptions.some(sub => sub.businessId === businessId);
+  };
 
   if (error) {
     return (
@@ -278,6 +378,22 @@ const Explore: React.FC = () => {
           />
         )}
         
+        {/* Subscribed filter chip */}
+        {showSubscribedOnly && (
+          <Chip 
+            icon={<BookmarkIcon sx={{ color: "#1976d2" }} />}
+            label="Subscribed Only" 
+            size="small"
+            color="primary"
+            sx={{ 
+              fontWeight: "medium", 
+              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              '& .MuiChip-label': { paddingLeft: 0 }
+            }}
+            onDelete={handleRemoveSubscribedOnly}
+          />
+        )}
+        
         {/* Category filter chips */}
         {selectedCategories.map(category => (
           <Chip 
@@ -308,87 +424,114 @@ const Explore: React.FC = () => {
 
       {/* Scrollable Business List */}
       <Box sx={{ flex: 1, overflowY: "auto" }}>
-        {loading || imageLoading ? (
+        {isLoading ? (
           <Box sx={{ display: "flex", justifyContent: "center", padding: "20px" }}>
             <CircularProgress />
           </Box>
         ) : filteredBusinesses.length > 0 ? (
-          filteredBusinesses.map((business) => (
-            <Box key={business.id} sx={{ padding: "10px", cursor: "pointer" }}  onClick={() => navigate(`/business/${business.id}`)}>
-              {/* Grey Box with Image or Image Icon */}
-              <Box
-                sx={{
-                  width: "100%",
-                  height: "300px",
-                  backgroundColor: "#e0e0e0",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderRadius: "12px",
-                  backgroundImage: business.imageUrl ? `url(${business.imageUrl})` : "none",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  position: "relative", // For positioning the verified badge
-                }}
-              >
-                {!business.imageUrl && (
-                  <ImageIcon fontSize="large" sx={{ color: "#9e9e9e" }} />
-                )}
-                
-                {/* Verified Badge */}
-                {business.status === 'VERIFIED' && (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      backgroundColor: "rgba(255, 255, 255, 0.9)",
-                      borderRadius: "50%",
-                      padding: "4px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                    }}
-                  >
-                    <VerifiedIcon sx={{ color: "#1976d2" }} />
-                  </Box>
-                )}
-              </Box>
-              
-              {/* Business Details */}
-              <Box sx={{ padding: "10px" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Typography fontWeight="bold">{business.name}</Typography>
+          filteredBusinesses.map((business) => {
+            const subscribed = isBusinessSubscribed(business.id);
+            
+            return (
+              <Box key={business.id} sx={{ padding: "10px", cursor: "pointer" }} onClick={() => navigate(`/business/${business.id}`)}>
+                {/* Grey Box with Image or Image Icon */}
+                <Box
+                  sx={{
+                    width: "100%",
+                    height: "300px",
+                    backgroundColor: "#e0e0e0",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderRadius: "12px",
+                    backgroundImage: business.imageUrl ? `url(${business.imageUrl})` : "none",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    position: "relative", // For positioning the badges
+                  }}
+                >
+                  {!business.imageUrl && (
+                    <ImageIcon fontSize="large" sx={{ color: "#9e9e9e" }} />
+                  )}
+                  
+                  {/* Verified Badge */}
                   {business.status === 'VERIFIED' && (
-                    <VerifiedIcon fontSize="small" sx={{ color: "#1976d2" }} />
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 10,
+                        right: 10,
+                        backgroundColor: "rgba(255, 255, 255, 0.9)",
+                        borderRadius: "50%",
+                        padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                      }}
+                    >
+                      <VerifiedIcon sx={{ color: "#1976d2" }} />
+                    </Box>
+                  )}
+                  
+                  {/* Subscribed Badge */}
+                  {subscribed && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 10,
+                        left: 10,
+                        backgroundColor: "rgba(255, 255, 255, 0.9)",
+                        borderRadius: "50%",
+                        padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                      }}
+                    >
+                      <BookmarkIcon sx={{ color: "#1976d2" }} />
+                    </Box>
                   )}
                 </Box>
-                <Typography variant="body2" color="text.secondary">
-                  {business.description || "No description available"}
-                </Typography>
                 
-                {/* Category Tags */}
-                {business.category && business.category.length > 0 && (
-                  <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                    {business.category.map((category, index) => (
-                      <Chip 
-                        key={index}
-                        label={category}
-                        size="small"
-                        sx={{ 
-                          fontSize: "0.7rem", 
-                          height: "20px",
-                          backgroundColor: "#f0f0f0",
-                          fontWeight: "medium"
-                        }}
-                      />
-                    ))}
+                {/* Business Details */}
+                <Box sx={{ padding: "10px" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography fontWeight="bold">{business.name}</Typography>
+                    {business.status === 'VERIFIED' && (
+                      <VerifiedIcon fontSize="small" sx={{ color: "#1976d2" }} />
+                    )}
+                    {subscribed && (
+                      <BookmarkIcon fontSize="small" sx={{ color: "#1976d2" }} />
+                    )}
                   </Box>
-                )}
+                  <Typography variant="body2" color="text.secondary">
+                    {business.description || "No description available"}
+                  </Typography>
+                  
+                  {/* Category Tags */}
+                  {business.category && business.category.length > 0 && (
+                    <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {business.category.map((category, index) => (
+                        <Chip 
+                          key={index}
+                          label={category}
+                          size="small"
+                          sx={{ 
+                            fontSize: "0.7rem", 
+                            height: "20px",
+                            backgroundColor: "#f0f0f0",
+                            fontWeight: "medium"
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                </Box>
               </Box>
-            </Box>
-          ))
+            );
+          })
         ) : (
           <Box sx={{ padding: "20px", textAlign: "center" }}>
             <Typography align="center" sx={{ mt: 2, color: "#9e9e9e" }}>
@@ -422,6 +565,29 @@ const Explore: React.FC = () => {
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <Typography>Show verified businesses only</Typography>
                   <VerifiedIcon sx={{ ml: 1, color: "#1976d2", fontSize: "1rem" }} />
+                </Box>
+              }
+            />
+          </Box>
+          
+          <Divider sx={{ my: 2 }} />
+          
+          {/* Subscribed Filter Toggle */}
+          <Box sx={{ mb: 2 }}>
+            <Typography fontWeight="medium" sx={{ mb: 1 }}>Subscriptions</Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showSubscribedOnly}
+                  onChange={handleSubscribedOnlyChange}
+                  color="primary"
+                  disabled={!subscriptionsLoaded}
+                />
+              }
+              label={
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Typography>Show my subscriptions only</Typography>
+                  <BookmarkIcon sx={{ ml: 1, color: "#1976d2", fontSize: "1rem" }} />
                 </Box>
               }
             />
